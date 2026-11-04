@@ -77,3 +77,12 @@ Do not silently turn a proposed change into an approved requirement.
 Do not assume a programming language, framework, database, architecture, testing tool or deployment platform until it has been selected and documented or explicitly approved by the user.
 
 Choose implementation details only within the approved scope, and explain any decision that requires user input.
+
+## Contexto e consistência do projeto
+
+- A Matriz é uma aplicação de gestão de projetos e tarefas para equipas de trabalho.
+- O âmbito e os requisitos atuais estão definidos no `README.md` e nos documentos em `docs/`.
+- Consultar sempre a documentação atual antes de propor ou executar alterações.
+- Não assumir que decisões, funcionalidades ou exemplos presentes em exercícios anteriores continuam válidos.
+- Quando existirem contradições entre documentos, identificar o problema e pedir esclarecimentos antes de tomar decisões.
+- Não introduzir funcionalidades ou decisões técnicas sem justificação nos requisitos ou aprovação explícita.
