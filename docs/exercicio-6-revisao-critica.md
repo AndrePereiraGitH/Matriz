@@ -1,74 +1,124 @@
-# Exercício 6 — Revisão Crítica e Human-in-the-Loop
+# Exercício 6 — Revisão Crítica da Especificação
 
 ## 1. Objetivo
 
-Rever criticamente a documentação do projeto Matriz, identificando ambiguidades, funcionalidades não justificadas, pressupostos, critérios de aceitação pouco verificáveis, riscos de segurança e inconsistências entre documentos.
+O objetivo deste exercício é rever criticamente a documentação produzida para a Matriz, identificando ambiguidades, pressupostos não confirmados, inconsistências e possíveis riscos.
 
-A análise foi apoiada por IA, mas as recomendações devem ser avaliadas antes de serem aceites. A IA não substitui a decisão humana.
+A revisão procura garantir que a especificação corresponde às necessidades apresentadas pelo cliente e que pode servir de base para as fases seguintes do projeto.
 
-## 2. Problemas identificados e decisões propostas
+## 2. Problema identificado: interpretação incorreta do âmbito
 
-| ID | Problema identificado | Recomendação da IA | Decisão proposta |
-|---|---|---|---|
-| R01 | A utilização da matriz de Eisenhower ainda não foi validada. | Confirmar o conceito antes de iniciar a implementação. | Aceitar |
-| R02 | Não está definido onde aparecem as tarefas concluídas. | Definir se permanecem nos quadrantes ou passam para uma secção separada. | Aceitar a necessidade de clarificação; adiar a decisão funcional |
-| R03 | A eliminação de tarefas não tem uma política de confirmação ou recuperação definida. | Decidir se é necessária confirmação e se existe recuperação. | Aceitar |
-| R04 | O limite máximo dos títulos não está definido. | Definir um limite antes da implementação ou justificar a ausência de limite. | Aceitar a necessidade de clarificação |
-| R05 | Alguns requisitos não têm critérios quantitativos ou verificáveis. | Melhorar os critérios de usabilidade, responsividade e compatibilidade. | Aceitar; definir os valores numa fase posterior |
-| R06 | Projetos, filtros, calendário e outras funcionalidades podem aumentar a complexidade do MVP. | Manter estas funcionalidades fora do MVP até serem justificadas e aprovadas. | Aceitar |
-| R07 | O armazenamento local pode permitir acesso a terceiros com acesso ao mesmo perfil do navegador e não garante cópias de segurança. | Documentar estas limitações e evitar apresentar o sistema como adequado a dados confidenciais. | Aceitar |
-| R08 | O comportamento perante dados locais inválidos aparece parcialmente definido e parcialmente pendente. | Manter a regra de não apagar dados silenciosamente e clarificar os restantes comportamentos. | Aceitar |
-| R09 | A responsividade não está destacada de forma consistente em todos os documentos. | Uniformizar a descrição do âmbito do MVP. | Aceitar |
-| R10 | A implementação ainda não tem tecnologias selecionadas. | Não assumir linguagens, frameworks ou serviços antes de serem aprovados. | Aceitar |
+Durante a revisão da documentação, foi identificada uma diferença importante entre a interpretação inicial do projeto e o enquadramento original fornecido pelo cliente.
 
-## 3. Funcionalidades não justificadas
+A documentação inicial descrevia a Matriz como uma aplicação individual de gestão de tarefas baseada na matriz de Eisenhower.
 
-A matriz de Eisenhower é a base da proposta atual, mas deve ser confirmada antes de ser tratada como requisito definitivo.
+No entanto, o enunciado original define a Matriz como:
 
-A gestão de projetos, as notificações, a sincronização, a autenticação e as integrações externas não são necessárias para demonstrar o funcionamento básico do MVP, de acordo com o âmbito documentado.
+> Uma aplicação destinada à gestão de projetos e tarefas de equipas de trabalho.
 
-Estas funcionalidades não são rejeitadas definitivamente. Permanecem como possibilidades futuras, sujeitas a validação e aprovação.
+O cliente pretende que as equipas possam organizar projetos, gerir tarefas e acompanhar o progresso do trabalho.
 
-## 4. Critérios de aceitação a melhorar
+### Problema
 
-Os critérios relacionados com a apresentação visual das tarefas concluídas, a validade dos títulos, a responsividade e a compatibilidade com navegadores precisam de maior precisão.
+A interpretação inicial introduziu funcionalidades e decisões que não estavam presentes no enunciado, nomeadamente:
 
-A melhoria deve ser feita sem inventar valores arbitrários. Os limites, dimensões de teste e navegadores suportados devem ser definidos quando existir informação suficiente.
+- Utilização individual da aplicação;
+- Organização de tarefas através da matriz de Eisenhower;
+- Armazenamento local no navegador;
+- Ausência de contas de utilizador;
+- Ausência de colaboração entre membros de equipas.
 
-## 5. Segurança e privacidade
+Estas decisões alteraram significativamente o âmbito do projeto.
 
-Os principais riscos identificados são:
+### Correção
 
-- Perda de dados devido à limpeza do armazenamento do navegador.
-- Acesso às tarefas por outras pessoas que utilizem o mesmo perfil do navegador.
-- Tratamento incorreto de títulos que contenham conteúdo malicioso.
-- Falhas de armazenamento apresentadas incorretamente como operações bem-sucedidas.
-- Necessidade de rever as medidas de segurança caso sejam introduzidas autenticação, sincronização ou integrações externas.
+A especificação foi revista para representar uma aplicação de gestão de projetos e tarefas para equipas de trabalho.
 
-As restrições de segurança devem ser verificadas durante a implementação e os testes. A sua presença na documentação não comprova que estejam implementadas.
+As funcionalidades e decisões técnicas que não foram confirmadas passaram a ser identificadas como questões em aberto.
 
-## 6. Consistência entre documentos
+## 3. Outros problemas identificados
 
-A documentação deve manter a mesma distinção entre:
+| ID | Problema identificado | Correção proposta |
+|---|---|---|
+| R01 | A aplicação foi inicialmente interpretada como uma ferramenta individual. | Corrigir o âmbito para gestão de trabalho em equipa. |
+| R02 | A matriz de Eisenhower foi introduzida sem indicação do cliente. | Remover essa funcionalidade da especificação principal. |
+| R03 | O armazenamento local foi assumido como decisão técnica. | Deixar a tecnologia e persistência em aberto. |
+| R04 | A ausência de autenticação foi assumida sem justificação. | Identificar autenticação e gestão de utilizadores como questões a esclarecer. |
+| R05 | As funcionalidades de colaboração não estavam devidamente representadas. | Considerar as necessidades relacionadas com equipas e projetos na especificação. |
+| R06 | Algumas funcionalidades adicionais foram propostas sem validação. | Distinguir funcionalidades confirmadas de possíveis funcionalidades futuras. |
+| R07 | Alguns requisitos não funcionais foram apresentados como decisões definitivas. | Transformá-los em dimensões a analisar e validar. |
+| R08 | Os critérios de aceitação não definiam sempre comportamentos suficientemente verificáveis. | Tornar os critérios mais objetivos e identificar as decisões ainda necessárias. |
 
-- Funcionalidades essenciais do MVP (P0).
-- Funcionalidades previstas para iterações posteriores (P1).
-- Funcionalidades futuras (P2).
-- Pressupostos ainda não validados.
-- Decisões confirmadas pelo responsável pelo projeto.
+## 4. Pressupostos e decisões não justificadas
 
-A regra para não apagar silenciosamente dados locais inválidos deve ser mantida, clarificando-se os restantes procedimentos de recuperação.
+A revisão identificou vários exemplos de pressupostos que não deveriam ter sido tratados como factos:
 
-A responsividade deve ser descrita de forma consistente no README e nos requisitos.
+- A aplicação seria utilizada por uma única pessoa.
+- As tarefas seriam organizadas por urgência e importância.
+- Os dados seriam guardados no armazenamento local do navegador.
+- Não existiriam contas ou autenticação.
+- Não existiria colaboração entre utilizadores.
+- A aplicação seria obrigatoriamente desenvolvida com determinadas tecnologias.
 
-## 7. Resultado da revisão
+Estes pressupostos foram removidos da especificação principal ou identificados como decisões por tomar.
 
-A revisão identificou melhorias necessárias, mas não justifica alterar automaticamente todos os documentos ou acrescentar novas funcionalidades.
+## 5. Revisão dos critérios de aceitação
 
-As alterações devem ser limitadas às decisões aceites. Os restantes pontos devem permanecer registados como questões pendentes.
+Os critérios de aceitação devem permitir verificar objetivamente se uma funcionalidade cumpre o comportamento esperado.
 
-## 8. Limitações da análise
+Por exemplo, um critério genérico como:
 
-A análise incidiu sobre a documentação disponível no repositório. Como a implementação da aplicação ainda não está documentada como iniciada, não foi possível verificar o comportamento real do software, executar testes ou confirmar a eficácia das medidas de segurança.
+"Deve ser possível acompanhar facilmente o progresso do projeto."
 
-A revisão deverá ser repetida quando os requisitos forem validados e quando existir uma implementação para testar.
+não é suficientemente verificável, porque a expressão "facilmente" é subjetiva.
+
+Uma formulação mais objetiva seria:
+
+"Quando um utilizador consulta um projeto, o sistema apresenta informação sobre o progresso desse projeto."
+
+Ainda será necessário definir como o progresso é calculado ou representado.
+
+Esta distinção permite criar critérios verificáveis sem inventar regras de negócio que o cliente ainda não confirmou.
+
+## 6. Segurança e privacidade
+
+A aplicação poderá armazenar informação relativa a equipas, projetos, tarefas e utilizadores.
+
+Por isso, deverão ser analisados os seguintes aspetos:
+
+- Quem pode consultar os projetos e as respetivas tarefas?
+- Quem pode criar, editar ou eliminar informação?
+- Como são protegidos os dados dos utilizadores?
+- Como são geridas as permissões entre equipas?
+- É necessário manter um histórico de alterações?
+
+As respostas a estas questões deverão ser incorporadas nos requisitos antes da implementação.
+
+## 7. Consistência entre documentos
+
+Após a revisão, os documentos principais foram alinhados com o âmbito original do projeto:
+
+- `README.md`: apresenta a Matriz como uma aplicação de gestão de projetos e tarefas para equipas.
+- `requirements.md`: identifica os requisitos funcionais principais e as questões por esclarecer.
+- `user-stories.md`: apresenta histórias relacionadas com projetos, equipas, tarefas e progresso.
+- `constraints.md`: distingue as restrições conhecidas das decisões técnicas ainda não tomadas.
+
+O `AGENTS.md` mantém-se como documento de orientação para ferramentas de IA, uma vez que as suas regras gerais continuam adequadas.
+
+## 8. Resultado da revisão
+
+A revisão permitiu identificar e corrigir um problema fundamental na interpretação inicial do projeto.
+
+A especificação atual está alinhada com o objetivo apresentado pelo cliente: desenvolver uma aplicação para ajudar equipas de trabalho a organizar projetos, gerir tarefas e acompanhar o progresso.
+
+Apesar desta correção, existem ainda questões funcionais e técnicas por esclarecer.
+
+Essas questões deverão ser analisadas e validadas antes de avançar para decisões detalhadas de arquitetura e implementação.
+
+## 9. Conclusão
+
+A utilização de ferramentas de IA permitiu acelerar a elaboração da documentação, mas também demonstrou a importância da revisão crítica das respostas geradas.
+
+Uma resposta da IA pode parecer coerente e completa, mas introduzir pressupostos que alteram o objetivo real do projeto.
+
+Por isso, é essencial comparar a documentação produzida com o enunciado original, questionar as decisões não justificadas e validar os requisitos antes de avançar para as fases seguintes.

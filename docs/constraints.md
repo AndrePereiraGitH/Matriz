@@ -1,106 +1,104 @@
-# Matriz — Constraints and Decisions
+# Matriz — Constraints e Pressupostos
 
-## 1. Restrições conhecidas
+## 1. Objetivo
 
-- O projeto encontra-se inicialmente na fase de análise de requisitos e documentação.
-- O MVP destina-se a utilização individual.
-- A aplicação deverá ser acessível através de um navegador.
-- O armazenamento inicial será local no navegador.
-- A colaboração e a sincronização entre dispositivos estão fora do MVP.
-- A solução deverá evitar funcionalidades desnecessárias antes de validar os requisitos essenciais.
-- A interface proposta será em português de Portugal.
+Este documento identifica as restrições conhecidas, os pressupostos de trabalho e as decisões técnicas que ainda não foram tomadas no projeto Matriz.
 
-## 2. Pressupostos assumidos
+O objetivo é evitar que decisões não confirmadas sejam tratadas como requisitos do sistema.
 
-Os seguintes pontos são pressupostos de trabalho e não requisitos confirmados pelo cliente:
+## 2. Restrições conhecidas
 
-1. «Matriz» refere-se à matriz de Eisenhower.
-2. O utilizador principal é uma pessoa que organiza as suas próprias tarefas.
-3. A matriz contém quatro quadrantes definidos por urgência e importância.
-4. Uma tarefa tem título, urgência, importância e estado de conclusão.
-5. O armazenamento local é suficiente para a primeira versão.
-6. Não são necessárias contas de utilizador nem serviços externos no MVP.
-7. A interface deve adaptar-se a diferentes tamanhos de ecrã.
+Com base no enquadramento original do cliente, são conhecidas as seguintes condições:
 
-Estes pressupostos devem ser revistos quando existir informação adicional.
+- A aplicação destina-se à gestão de projetos e tarefas de equipas de trabalho.
+- A aplicação deverá permitir organizar projetos.
+- A aplicação deverá permitir gerir tarefas.
+- A aplicação deverá permitir acompanhar o progresso do trabalho.
+- A fase atual do projeto é dedicada à análise e especificação, não à implementação de código.
 
-## 3. Segurança e privacidade
+Não foram fornecidas outras restrições técnicas ou tecnológicas pelo cliente.
 
-### 3.1. Armazenamento local
+## 3. Pressupostos de trabalho
 
-- As tarefas do MVP deverão ser guardadas localmente no navegador.
-- A aplicação não deverá transmitir os dados das tarefas para um servidor externo.
-- O utilizador deverá ser informado de que os dados podem deixar de estar disponíveis se limpar os dados do navegador ou utilizar outro dispositivo ou ambiente de armazenamento.
-- A aplicação não deverá afirmar que os dados foram guardados quando a operação falhou.
+Para desenvolver a especificação inicial, considera-se que:
 
-### 3.2. Minimização de dados
+- Existem equipas de trabalho que utilizam a aplicação.
+- Existem projetos que precisam de ser organizados.
+- Existem tarefas associadas ao trabalho dos projetos.
+- Os utilizadores precisam de consultar informação que lhes permita acompanhar o trabalho.
 
-- A aplicação deverá recolher apenas os dados necessários à gestão das tarefas.
-- Não serão necessários dados pessoais para identificar o utilizador no MVP.
-- Não deverão ser introduzidos mecanismos de recolha de dados ou de análise externa sem uma decisão explícita.
+Estes pressupostos decorrem do objetivo geral descrito pelo cliente, mas os detalhes de funcionamento ainda precisam de ser confirmados.
 
-### 3.3. Segurança da interface
+## 4. Decisões ainda não tomadas
 
-- Os títulos das tarefas deverão ser apresentados como texto, sem executar conteúdo introduzido pelo utilizador como código HTML ou JavaScript.
-- Os dados recuperados do armazenamento local deverão ser validados antes de serem utilizados.
-- Erros de leitura ou escrita deverão ser tratados sem falhas silenciosas.
-- A aplicação deverá evitar a perda involuntária de dados.
+As seguintes decisões não devem ser assumidas nesta fase:
 
-### 3.4. Limitações de segurança
+### 4.1. Utilizadores e autenticação
 
-O armazenamento local não constitui uma solução de cópia de segurança nem protege os dados contra qualquer pessoa que tenha acesso ao mesmo perfil de navegador.
+- Será necessário criar contas de utilizador?
+- Como será feita a autenticação?
+- Um utilizador poderá pertencer a várias equipas?
+- Existirão diferentes tipos de utilizador ou permissões?
 
-Como não existe autenticação no MVP, a aplicação não deverá ser apresentada como um sistema de gestão de dados confidenciais ou com controlo de acesso individual.
+### 4.2. Equipas e projetos
 
-## 4. Decisões técnicas ainda pendentes
+- Como serão criadas e geridas as equipas?
+- Como serão associados os projetos às equipas?
+- Um projeto poderá pertencer a várias equipas?
+- Quem poderá criar, editar ou eliminar projetos?
 
-| Tema | Decisão atual | Estado |
-|---|---|---|
-| Plataforma | Aplicação web | Pressuposto |
-| Linguagens e tecnologias | Ainda não definidas | Pendente |
-| Framework frontend | Ainda não definido | Pendente |
-| Arquitetura da aplicação | Ainda não definida | Pendente |
-| Persistência | Armazenamento local no navegador | Proposta para o MVP |
-| Backend | Não previsto no MVP inicial | Pressuposto |
-| Base de dados remota | Não prevista no MVP inicial | Pressuposto |
-| Testes automatizados | Ferramentas e estratégia por definir | Pendente |
-| Navegadores suportados | Por definir | Pendente |
-| Acessibilidade | Critérios específicos por definir | Pendente |
-| Alojamento e publicação | Por definir | Pendente |
-| Gestão de dependências e segurança | Ferramentas e processo por definir | Pendente |
+### 4.3. Tarefas
 
-Nenhuma tecnologia específica deverá ser tratada como obrigatória até ser escolhida e documentada.
+- Que informação deverá conter uma tarefa?
+- Como serão atribuídas as tarefas?
+- Que estados e prioridades estarão disponíveis?
+- Como serão definidos os prazos?
+- Existirá um histórico de alterações?
 
-## 5. Limitações de âmbito
+### 4.4. Tecnologia e arquitetura
 
-Não fazem parte do MVP:
+Ainda não foram escolhidos:
 
-- Autenticação e gestão de contas.
-- Partilha de tarefas ou projetos.
-- Atribuição de tarefas a outros utilizadores.
-- Sincronização entre dispositivos.
-- Notificações automáticas.
-- Integrações externas.
-- Relatórios avançados.
-- Gestão de projetos, pesquisa, filtros e vistas alternativas, salvo alteração explícita do âmbito.
+- Linguagem de programação;
+- Frameworks;
+- Arquitetura da aplicação;
+- Base de dados;
+- Serviços externos;
+- Modelo de alojamento;
+- Mecanismos de autenticação e autorização.
 
-Qualquer nova funcionalidade deverá ser avaliada quanto ao seu valor, complexidade e impacto no MVP antes de ser incluída.
+Estas decisões deverão ser tomadas com base nos requisitos validados.
 
-## 6. Regras para a utilização de IA no desenvolvimento
+## 5. Segurança e privacidade
 
-A IA deverá utilizar estes documentos como contexto de referência.
+Como a aplicação poderá armazenar informação relativa a equipas, projetos, tarefas e utilizadores, será necessário analisar:
 
-Durante o desenvolvimento, deverá:
+- Controlo de acesso à informação;
+- Permissões dos utilizadores;
+- Proteção dos dados armazenados;
+- Privacidade da informação das equipas;
+- Segurança das operações realizadas na aplicação.
 
-1. Respeitar os requisitos e o âmbito definidos.
-2. Distinguir requisitos confirmados de pressupostos e propostas.
-3. Não introduzir tecnologias, serviços ou funcionalidades como se tivessem sido aprovados quando ainda estão pendentes.
-4. Identificar contradições entre os documentos antes de propor alterações.
-5. Pedir esclarecimentos quando uma decisão em falta afetar significativamente a implementação.
-6. Propor alterações aos documentos quando os requisitos mudarem.
-7. Explicar as alterações realizadas e os testes necessários para as validar.
-8. Evitar alterações não relacionadas com a tarefa solicitada.
+Os mecanismos concretos de segurança ainda não estão definidos.
 
-## 7. Revisão das decisões
+## 6. Limitações desta especificação
 
-Sempre que uma decisão pendente for tomada, os documentos relevantes deverão ser atualizados em conjunto para manter a consistência entre requisitos, User Stories, restrições e README.
+A informação inicial fornecida pelo cliente é genérica e não define detalhadamente:
+
+- Funcionalidades;
+- Regras de negócio;
+- Requisitos técnicos;
+- Prioridades;
+- Perfis de utilizador;
+- Fluxos de trabalho.
+
+Por esse motivo, a especificação atual deve ser considerada preliminar e sujeita a validação.
+
+## 7. Princípio de evolução
+
+Qualquer nova decisão deverá:
+
+1. Ter uma justificação baseada numa necessidade identificada.
+2. Ser documentada.
+3. Ser consistente com os requisitos e histórias de utilizador.
+4. Ser validada antes de ser considerada parte definitiva da solução.

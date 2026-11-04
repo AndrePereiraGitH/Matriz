@@ -1,151 +1,135 @@
-# Matriz — User Stories
+# Matriz — User Stories e Acceptance Criteria
 
-## 1. Convenções de prioridade
+## 1. Introdução
 
-- **P0:** funcionalidade essencial para o MVP.
-- **P1:** funcionalidade prevista para uma iteração posterior.
-- **P2:** funcionalidade futura, fora do âmbito inicial.
+Este documento apresenta as histórias de utilizador iniciais da Matriz.
 
-## 2. User Stories do MVP
+As histórias foram elaboradas a partir do enquadramento fornecido pelo cliente:
 
-### US01 — Visualizar a matriz
+> "Precisamos de uma aplicação onde as nossas equipas possam organizar projetos, gerir tarefas e acompanhar o progresso do trabalho."
 
-**Prioridade:** P0
+Como ainda não foram clarificados todos os detalhes funcionais, algumas histórias representam necessidades gerais e deverão ser refinadas com o cliente.
 
-Como utilizador individual, quero visualizar as tarefas organizadas nos quatro quadrantes, para identificar rapidamente as minhas prioridades.
+## 2. User Stories
 
-**Critérios de aceitação:**
+### US01 — Organizar projetos
 
-- **Given** que existem tarefas guardadas, **when** abro a aplicação, **then** cada tarefa é apresentada no quadrante correspondente à sua classificação.
-- **Given** que não existem tarefas, **when** abro a aplicação, **then** os quatro quadrantes são apresentados, mesmo que estejam vazios.
+**Como** membro de uma equipa,
 
-### US02 — Criar uma tarefa
+**Quero** consultar os projetos associados à minha equipa,
 
-**Prioridade:** P0
-
-Como utilizador individual, quero criar uma tarefa com um título, para registar algo que preciso de fazer.
-
-**Critérios de aceitação:**
-
-- **Given** que estou na aplicação, **when** introduzo um título válido e confirmo a criação, **then** a tarefa é criada e apresentada na matriz.
-- **Given** que o título está vazio ou contém apenas espaços, **when** tento criar a tarefa, **then** a aplicação rejeita a criação e apresenta uma mensagem de validação.
-- **Given** que uma tarefa foi criada, **when** é apresentada pela primeira vez, **then** o seu estado é «não concluída».
-
-### US03 — Classificar uma tarefa
+**Para** conseguir identificar e acompanhar o trabalho em curso.
 
 **Prioridade:** P0
 
-Como utilizador individual, quero definir a urgência e a importância de uma tarefa, para a colocar no quadrante adequado.
-
 **Critérios de aceitação:**
 
-- **Given** que estou a criar ou editar uma tarefa, **when** defino a urgência e a importância, **then** a aplicação determina o quadrante correspondente.
-- **Given** que uma tarefa é urgente e importante, **when** guardo a tarefa, **then** aparece em «Fazer já».
-- **Given** que uma tarefa é importante, mas não urgente, **when** guardo a tarefa, **then** aparece em «Planear».
-- **Given** que uma tarefa é urgente, mas não importante, **when** guardo a tarefa, **then** aparece em «Delegar».
-- **Given** que uma tarefa não é urgente nem importante, **when** guardo a tarefa, **then** aparece em «Eliminar ou adiar».
+- Dado que existem projetos associados à equipa, quando consulto os projetos da equipa, então o sistema apresenta esses projetos.
+- Dado que não existem projetos associados à equipa, quando consulto os projetos, então o sistema informa que não existem projetos para apresentar.
 
-### US04 — Editar uma tarefa
+### US02 — Associar projetos a equipas
+
+**Como** utilizador responsável pela organização do trabalho,
+
+**Quero** associar projetos a equipas,
+
+**Para** organizar o trabalho de acordo com as equipas responsáveis.
 
 **Prioridade:** P0
 
-Como utilizador individual, quero editar uma tarefa existente, para atualizar as suas informações.
-
 **Critérios de aceitação:**
 
-- **Given** que existe uma tarefa, **when** altero o título para um valor válido e guardo, **then** o novo título é apresentado.
-- **Given** que altero a urgência ou a importância, **when** guardo as alterações, **then** a tarefa passa para o quadrante correspondente.
-- **Given** que introduzo um título vazio, **when** tento guardar, **then** a alteração é rejeitada e os dados anteriores são preservados.
+- Quando um projeto é associado a uma equipa, essa associação fica registada no sistema.
+- Quando consulto os projetos de uma equipa, devem ser apresentados os projetos associados a essa equipa.
 
-### US05 — Eliminar uma tarefa
+**Questão em aberto:** É necessário definir quem pode criar projetos e gerir estas associações.
+
+### US03 — Gerir tarefas
+
+**Como** membro de uma equipa,
+
+**Quero** consultar e gerir as tarefas dos projetos,
+
+**Para** organizar o trabalho necessário à execução dos projetos.
 
 **Prioridade:** P0
 
-Como utilizador individual, quero eliminar uma tarefa, para remover tarefas que já não são necessárias.
-
 **Critérios de aceitação:**
 
-- **Given** que existe uma tarefa, **when** executo a ação de eliminação definida pela aplicação, **then** a tarefa deixa de aparecer na matriz.
-- **Given** que a eliminação foi concluída, **when** volto a consultar a matriz, **then** a tarefa eliminada não é apresentada.
+- Quando consulto um projeto, o sistema apresenta as tarefas associadas a esse projeto.
+- Cada tarefa apresentada deve permitir identificar a que projeto pertence.
+- As operações concretas de criação, edição e eliminação de tarefas deverão ser confirmadas com o cliente.
 
-**Questão pendente:** definir se é necessária uma confirmação antes da eliminação e se existe recuperação de tarefas eliminadas.
+### US04 — Consultar informação de uma tarefa
 
-### US06 — Marcar uma tarefa como concluída
+**Como** membro de uma equipa,
+
+**Quero** consultar a informação de uma tarefa,
+
+**Para** compreender o trabalho que está associado a essa tarefa.
 
 **Prioridade:** P0
 
-Como utilizador individual, quero marcar uma tarefa como concluída ou não concluída, para acompanhar o meu progresso.
-
 **Critérios de aceitação:**
 
-- **Given** que existe uma tarefa não concluída, **when** a marco como concluída, **then** o seu estado é atualizado e fica visualmente identificável.
-- **Given** que existe uma tarefa concluída, **when** a marco novamente como não concluída, **then** o estado é revertido.
+- Quando seleciono uma tarefa, o sistema apresenta a informação disponível sobre essa tarefa.
+- A informação apresentada deve permitir identificar a tarefa e o projeto a que pertence.
 
-**Questão pendente:** decidir se as tarefas concluídas permanecem nos quadrantes originais ou passam para uma secção separada.
+**Questão em aberto:** É necessário definir quais os campos obrigatórios de uma tarefa.
 
-### US07 — Guardar e recuperar tarefas
+### US05 — Acompanhar o progresso de um projeto
+
+**Como** membro de uma equipa,
+
+**Quero** consultar o progresso de um projeto,
+
+**Para** perceber o estado do trabalho realizado e do trabalho ainda pendente.
 
 **Prioridade:** P0
 
-Como utilizador individual, quero que as minhas tarefas sejam guardadas localmente, para continuar a utilizá-las depois de reabrir a aplicação.
+**Critérios de aceitação:**
+
+- Quando consulto um projeto, o sistema apresenta informação sobre o seu progresso.
+- A informação apresentada deve refletir os dados das tarefas associadas ao projeto, de acordo com o mecanismo de cálculo ou acompanhamento que vier a ser definido.
+
+**Questão em aberto:** O progresso será calculado automaticamente a partir das tarefas ou atualizado manualmente?
+
+### US06 — Acompanhar o progresso de uma tarefa
+
+**Como** membro de uma equipa,
+
+**Quero** consultar o progresso de uma tarefa,
+
+**Para** perceber em que ponto se encontra o trabalho.
+
+**Prioridade:** P0
 
 **Critérios de aceitação:**
 
-- **Given** que as alterações foram guardadas com sucesso, **when** fecho e reabro a aplicação no mesmo navegador e ambiente de armazenamento, **then** as tarefas, classificações e estados são recuperados.
-- **Given** que ocorre um erro de armazenamento, **when** tento guardar alterações, **then** a aplicação informa que as alterações podem não ter sido guardadas.
+- Quando consulto uma tarefa, o sistema apresenta o respetivo estado de progresso, caso esteja definido.
+- A informação apresentada deve corresponder ao estado registado no sistema.
 
-## 3. User Stories futuras
+**Questão em aberto:** É necessário definir os estados possíveis e as regras de transição entre estados.
 
-### US08 — Organizar tarefas por projeto
+## 3. Funcionalidades a clarificar
 
-**Prioridade:** P1
+As seguintes histórias poderão ser adicionadas depois de serem validadas com o cliente:
 
-Como utilizador individual, quero agrupar tarefas por projeto, para organizar atividades relacionadas.
+- Atribuir tarefas a membros específicos da equipa;
+- Definir prazos e prioridades;
+- Adicionar comentários às tarefas;
+- Consultar o histórico de alterações;
+- Filtrar e pesquisar projetos e tarefas;
+- Gerir permissões dos membros;
+- Receber notificações sobre alterações;
+- Consultar relatórios de progresso.
 
-### US09 — Definir datas limite
+Estas funcionalidades não devem ser consideradas requisitos confirmados enquanto não forem validadas.
 
-**Prioridade:** P1
+## 4. Observações
 
-Como utilizador individual, quero definir datas limite para as tarefas, para acompanhar os prazos.
+As histórias de utilizador apresentadas representam uma primeira interpretação das necessidades do cliente.
 
-### US10 — Pesquisar e filtrar tarefas
+Os critérios de aceitação definem comportamentos gerais que podem ser verificados, mas alguns dependem de decisões ainda em aberto.
 
-**Prioridade:** P1
-
-Como utilizador individual, quero pesquisar e filtrar tarefas, para encontrar rapidamente a informação de que preciso.
-
-### US11 — Partilhar projetos
-
-**Prioridade:** P2
-
-Como utilizador colaborador, quero partilhar projetos com outras pessoas, para trabalhar em tarefas comuns.
-
-Esta história depende de autenticação, permissões e armazenamento partilhado, pelo que não faz parte do MVP.
-
-## 4. Casos excecionais
-
-### CE01 — Título vazio
-A aplicação não permite criar ou guardar uma tarefa com um título vazio ou composto apenas por espaços.
-
-### CE02 — Falha no armazenamento
-A aplicação informa o utilizador de que os dados podem não ter sido guardados e não apresenta uma operação falhada como concluída com sucesso.
-
-### CE03 — Dados locais inválidos
-A aplicação informa o utilizador quando não consegue interpretar os dados guardados e evita apagá-los automaticamente sem uma decisão explícita.
-
-### CE04 — Alteração da classificação
-A tarefa muda para o quadrante correto sem ser duplicada nem perder o título ou o estado de conclusão.
-
-### CE05 — Eliminação de uma tarefa
-A aplicação segue a política de eliminação definida para o MVP. A necessidade de confirmação e de recuperação permanece por decidir.
-
-## 5. Decisões pendentes
-
-Antes da implementação, devem ser definidas:
-- A confirmação e a eventual recuperação de tarefas eliminadas.
-- A apresentação das tarefas concluídas.
-- O limite máximo de caracteres dos títulos.
-- O comportamento perante dados locais inválidos.
-- A eventual inclusão de projetos no MVP.
-
-Os critérios de aceitação devem ser atualizados caso estas decisões alterem o comportamento esperado.
+Antes da implementação, será necessário refinar as histórias, definir os campos e regras de negócio e validar os critérios de aceitação.

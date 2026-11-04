@@ -1,118 +1,119 @@
-# Matriz — Requirements
+# Matriz — Requisitos do Sistema
 
-## 1. Visão da aplicação
+## 1. Visão geral
 
-A Matriz é uma aplicação web de gestão e organização de tarefas que pretende ajudar os utilizadores a identificar prioridades e a organizar melhor o seu trabalho.
+A Matriz é uma aplicação destinada à gestão de projetos e tarefas de equipas de trabalho.
 
-A proposta inicial utiliza a matriz de Eisenhower para classificar tarefas segundo dois critérios: urgência e importância.
+A aplicação deverá permitir que as equipas organizem os seus projetos, façam a gestão das tarefas e acompanhem o progresso do trabalho.
 
-Esta definição parte de um pressuposto que ainda deverá ser validado: a matriz de Eisenhower é o conceito pretendido para a aplicação.
+A especificação parte da seguinte descrição fornecida pelo cliente:
 
-## 2. Objetivos
+> "Precisamos de uma aplicação onde as nossas equipas possam organizar projetos, gerir tarefas e acompanhar o progresso do trabalho."
 
-- Facilitar a criação e gestão de tarefas.
-- Ajudar a distinguir tarefas urgentes de tarefas importantes.
-- Permitir uma visualização rápida das prioridades.
-- Preservar as tarefas entre sessões de utilização.
-- Disponibilizar uma interface simples e acessível através de um navegador.
+O objetivo é transformar esta necessidade numa especificação clara, consistente e verificável.
 
-## 3. Tipos de utilizadores
+## 2. Âmbito do sistema
 
-### 3.1. Utilizador individual
+O âmbito inicial da Matriz centra-se em três áreas:
 
-É o utilizador principal previsto para o MVP.
+1. Organização de projetos por equipas de trabalho.
+2. Gestão das tarefas associadas aos projetos.
+3. Acompanhamento do progresso do trabalho.
 
-Necessidades:
-- Criar, consultar, editar e eliminar tarefas.
-- Classificar tarefas por urgência e importância.
-- Marcar tarefas como concluídas.
-- Consultar as tarefas organizadas nos quatro quadrantes.
+A forma concreta como estas funcionalidades serão implementadas ainda não está definida.
 
-### 3.2. Utilizador colaborador — futuro
+## 3. Requisitos funcionais
 
-Poderá participar em projetos partilhados com outros utilizadores.
-
-Esta possibilidade não faz parte do MVP e depende da futura implementação de autenticação, permissões e armazenamento partilhado.
-
-## 4. Requisitos funcionais
+Os requisitos seguintes representam necessidades identificadas a partir do enquadramento do cliente. Os detalhes que não foram fornecidos pelo cliente estão identificados como questões em aberto.
 
 | ID | Requisito | Prioridade |
 |---|---|---|
-| RF01 | A aplicação deve apresentar uma matriz dividida em quatro quadrantes. | P0 |
-| RF02 | O utilizador deve conseguir criar tarefas com um título válido. | P0 |
-| RF03 | O utilizador deve conseguir definir a urgência e a importância de cada tarefa. | P0 |
-| RF04 | A aplicação deve colocar cada tarefa no quadrante correspondente à sua classificação. | P0 |
-| RF05 | O utilizador deve conseguir editar tarefas existentes. | P0 |
-| RF06 | O utilizador deve conseguir eliminar tarefas. | P0 |
-| RF07 | O utilizador deve conseguir marcar tarefas como concluídas ou não concluídas. | P0 |
-| RF08 | A aplicação deve guardar e recuperar as tarefas através do armazenamento local do navegador. | P0 |
-| RF09 | A aplicação deve permitir agrupar tarefas por projeto. | P1 |
-| RF10 | O utilizador deve conseguir definir datas limite para as tarefas. | P1 |
-| RF11 | A aplicação poderá disponibilizar pesquisa e filtros de tarefas. | P1 |
-| RF12 | A aplicação poderá disponibilizar vistas alternativas, como lista ou calendário. | P1 |
-| RF13 | A aplicação poderá suportar contas de utilizador e autenticação. | P2 |
-| RF14 | A aplicação poderá permitir partilhar projetos e atribuir tarefas. | P2 |
-| RF15 | A aplicação poderá disponibilizar notificações e sincronização entre dispositivos. | P2 |
+| RF01 | O sistema deve permitir organizar o trabalho em projetos. | P0 |
+| RF02 | O sistema deve permitir associar projetos a equipas de trabalho. | P0 |
+| RF03 | O sistema deve permitir gerir tarefas associadas aos projetos. | P0 |
+| RF04 | O sistema deve permitir consultar a informação das tarefas. | P0 |
+| RF05 | O sistema deve permitir acompanhar o progresso dos projetos e das tarefas. | P0 |
 
-**Prioridades:** P0 = MVP; P1 = iteração posterior; P2 = funcionalidade futura.
+### 3.1. Detalhes por esclarecer
 
-## 5. Requisitos não funcionais
+Os seguintes comportamentos precisam de ser discutidos e validados antes de serem definidos como requisitos:
 
-| ID | Requisito | Critério ou intenção |
+- Criação, edição e eliminação de projetos;
+- Criação, edição e eliminação de tarefas;
+- Atribuição de tarefas a membros da equipa;
+- Estados possíveis para as tarefas;
+- Definição de prioridades e prazos;
+- Organização das tarefas através de listas, quadros ou outras visualizações;
+- Registo do progresso através de estados, percentagens ou outro mecanismo;
+- Existência de comentários ou histórico de alterações;
+- Diferentes níveis de permissões para os utilizadores.
+
+## 4. Requisitos não funcionais
+
+O cliente ainda não forneceu requisitos não funcionais específicos.
+
+As seguintes dimensões deverão ser analisadas durante a especificação:
+
+| ID | Dimensão | Questão a considerar |
 |---|---|---|
-| RNF01 | Usabilidade | A interface deve permitir identificar os quatro quadrantes e as ações principais sem ambiguidade. |
-| RNF02 | Compatibilidade | A aplicação deverá funcionar nos navegadores modernos selecionados para os testes. |
-| RNF03 | Responsividade | A interface deverá adaptar-se a diferentes tamanhos de ecrã. |
-| RNF04 | Persistência | As tarefas guardadas devem continuar disponíveis depois de fechar e reabrir a aplicação no mesmo navegador e ambiente de armazenamento. |
-| RNF05 | Integridade | A edição de uma tarefa não deve criar duplicados nem perder dados não alterados. |
-| RNF06 | Tratamento de erros | A aplicação deve informar o utilizador quando não consegue guardar ou recuperar os dados. |
-| RNF07 | Privacidade | O MVP não deverá transmitir tarefas para um servidor externo. |
-| RNF08 | Manutenibilidade | O código deverá ser organizado de forma a facilitar alterações e testes futuros. |
+| RNF01 | Usabilidade | A aplicação deverá ser fácil de utilizar pelos membros das equipas? |
+| RNF02 | Desempenho | Que tempos de resposta são aceitáveis? |
+| RNF03 | Segurança | Como serão protegidos os dados dos projetos e das equipas? |
+| RNF04 | Privacidade | Que informação dos utilizadores deverá ser armazenada e quem poderá consultá-la? |
+| RNF05 | Disponibilidade | Que nível de disponibilidade é esperado? |
+| RNF06 | Compatibilidade | Em que dispositivos e navegadores deverá funcionar? |
+| RNF07 | Escalabilidade | Quantas equipas, projetos e tarefas deverá suportar? |
+| RNF08 | Manutenção | Que requisitos deverão facilitar a evolução futura da aplicação? |
 
-Os requisitos não funcionais são objetivos iniciais. Critérios quantitativos de desempenho, acessibilidade e compatibilidade deverão ser definidos quando forem conhecidos os requisitos técnicos.
+Estas dimensões são pontos de análise, não requisitos técnicos já aprovados.
 
-## 6. Âmbito do MVP
+## 5. Priorização
 
-O MVP deverá incluir:
+A prioridade P0 identifica as capacidades fundamentais para responder à necessidade inicial do cliente:
 
-- Visualização dos quatro quadrantes da matriz de Eisenhower.
-- Criação de tarefas com título.
-- Classificação por urgência e importância.
-- Edição e eliminação de tarefas.
-- Marcação de tarefas como concluídas e não concluídas.
-- Persistência local dos dados.
-- Validação de títulos vazios.
-- Tratamento básico de erros de armazenamento.
-- Interface responsiva e em português de Portugal.
+- Organização de projetos;
+- Associação de projetos a equipas;
+- Gestão de tarefas;
+- Consulta de tarefas;
+- Acompanhamento do progresso.
 
-### Critérios de sucesso
+A prioridade e o âmbito das restantes funcionalidades deverão ser definidos após clarificação dos requisitos.
 
-O MVP deverá permitir que um utilizador:
-1. Crie uma tarefa válida.
-2. Classifique a tarefa e a visualize no quadrante correto.
-3. Edite, conclua e elimine a tarefa.
-4. Feche e reabra a aplicação sem perder os dados que foram guardados com sucesso.
+## 6. Fora do âmbito confirmado
 
-## 7. Funcionalidades fora do âmbito inicial
+Não existem funcionalidades adicionais confirmadas pelo cliente nesta fase.
 
-Ficam fora do MVP:
+Por isso, não se deve assumir como parte do âmbito:
 
-- Registo, autenticação e gestão de contas.
-- Partilha de tarefas e projetos.
-- Atribuição de tarefas a outros utilizadores.
-- Sincronização entre dispositivos.
-- Notificações automáticas.
-- Integrações com calendários e serviços externos.
-- Relatórios avançados de produtividade.
-- Gestão de projetos, pesquisa, filtros e vistas alternativas, salvo decisão posterior de alterar o âmbito.
+- Aplicações móveis nativas;
+- Integrações com ferramentas externas;
+- Notificações automáticas;
+- Relatórios avançados;
+- Gestão de faturação;
+- Funcionalidades de inteligência artificial;
+- Automatização de fluxos de trabalho.
 
-## 8. Questões por validar
+Estas funcionalidades poderão ser avaliadas futuramente, caso exista uma necessidade identificada.
 
-- Confirmar se a matriz de Eisenhower corresponde à intenção original do projeto.
-- Confirmar se o armazenamento local é suficiente.
-- Definir o comportamento das tarefas concluídas na interface.
-- Definir a política de confirmação e recuperação de tarefas eliminadas.
-- Definir o limite máximo de caracteres dos títulos.
-- Selecionar os navegadores e os critérios de acessibilidade a suportar.
+## 7. Questões em aberto
 
-Estas questões não devem ser tratadas como decisões confirmadas até serem revistas.
+Antes de avançar para o desenho detalhado da solução, será necessário esclarecer:
+
+1. Como são criadas e geridas as equipas?
+2. Um utilizador pode pertencer a várias equipas?
+3. Como são criados e geridos os projetos?
+4. Um projeto pode pertencer a mais do que uma equipa?
+5. Como são criadas e atribuídas as tarefas?
+6. Que estados e prioridades podem ter as tarefas?
+7. Como deve ser representado o progresso de um projeto?
+8. Que permissões existem para os diferentes utilizadores?
+9. É necessário manter um histórico de alterações?
+10. Que requisitos de segurança, desempenho e disponibilidade são esperados?
+
+## 8. Estado da especificação
+
+Este documento representa uma primeira versão da especificação, baseada exclusivamente no enquadramento inicial fornecido pelo cliente.
+
+Os requisitos funcionais apresentados identificam as capacidades principais da aplicação. Os detalhes ainda não confirmados permanecem como questões em aberto.
+
+A especificação deverá ser atualizada à medida que forem obtidas respostas e validadas decisões.

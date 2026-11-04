@@ -1,76 +1,58 @@
 # Matriz
 
-## Apresentação
+## 1. Enquadramento do projeto
 
-Matriz é um projeto de aplicação web para organização e gestão de tarefas, com o objetivo de ajudar os utilizadores a definir prioridades e a acompanhar o seu trabalho.
+A Matriz é uma aplicação destinada à gestão de projetos e tarefas de equipas de trabalho.
 
-A proposta inicial baseia-se na matriz de Eisenhower, que organiza tarefas de acordo com a sua urgência e importância.
+O objetivo é permitir que as equipas organizem os seus projetos, façam a gestão das tarefas associadas e acompanhem o progresso do trabalho.
 
-> **Nota:** a utilização da matriz de Eisenhower é um pressuposto de trabalho que ainda deverá ser validado.
+A aplicação pretende responder à seguinte necessidade identificada pelo cliente:
 
-## Problema a resolver
+> "Precisamos de uma aplicação onde as nossas equipas possam organizar projetos, gerir tarefas e acompanhar o progresso do trabalho."
 
-Quando existem muitas tarefas, pode ser difícil distinguir as atividades urgentes das que são realmente importantes. A Matriz pretende facilitar essa decisão através de uma representação visual das prioridades.
+A solução inspira-se em ferramentas de gestão de trabalho como Jira, Azure DevOps e Trello, sem assumir que terá necessariamente as mesmas funcionalidades.
 
-## Objetivos principais
+## 2. Objetivo do projeto
 
-- Organizar tarefas de forma visual.
-- Ajudar a identificar prioridades.
-- Permitir gerir o estado das tarefas.
-- Preservar as tarefas entre sessões de utilização.
-- Manter uma experiência simples e intuitiva.
+O objetivo desta fase é transformar a descrição inicial do cliente numa especificação clara, consistente e verificável.
 
-## Funcionalidades previstas para o MVP
+O trabalho está centrado na análise e especificação dos requisitos, não na implementação de código.
 
-- Visualização dos quatro quadrantes da matriz de Eisenhower.
-- Criação de tarefas com título.
-- Classificação por urgência e importância.
-- Edição e eliminação de tarefas.
-- Marcação de tarefas como concluídas.
-- Armazenamento local no navegador.
-- Validação de dados e tratamento básico de erros.
+## 3. Âmbito inicial
 
-Funcionalidades como autenticação, colaboração, sincronização, notificações e integrações externas ficam fora do âmbito inicial.
+A especificação deverá considerar os seguintes conceitos principais:
 
-## Organização da documentação
+- Equipas de trabalho;
+- Projetos;
+- Tarefas;
+- Organização das tarefas;
+- Acompanhamento do progresso dos projetos e tarefas.
 
-A documentação do projeto está organizada da seguinte forma:
+As funcionalidades concretas, regras de negócio, permissões, prioridades e requisitos técnicos deverão ser clarificados e validados antes de serem considerados decisões definitivas.
+
+## 4. Documentação
 
 | Ficheiro | Descrição |
 |---|---|
-| `README.md` | Apresentação do projeto, objetivos e estado atual. |
-| `docs/requirements.md` | Visão, tipos de utilizadores, requisitos funcionais e não funcionais e âmbito do MVP. |
-| `docs/user-stories.md` | User Stories, prioridades, critérios de aceitação e casos excecionais. |
-| `docs/constraints.md` | Restrições, pressupostos, segurança, privacidade e decisões técnicas pendentes. |
+| `docs/requirements.md` | Requisitos funcionais e não funcionais, âmbito e questões em aberto |
+| `docs/user-stories.md` | Histórias de utilizador e critérios de aceitação |
+| `docs/constraints.md` | Restrições, pressupostos e decisões ainda não confirmadas |
+| `docs/exercicio-1-prompt-engineering.md` | Registo do Exercício 1 |
+| `docs/exercicio-2-análise-de-requisitos-com-AI.md` | Registo do Exercício 2 |
+| `docs/exercicio-3-User-Stories-and-Acceptance-Criteria.md` | Registo do Exercício 3 |
+| `docs/exercicio-6-revisao-critica.md` | Revisão crítica da especificação |
 
-## Estado atual do projeto
+## 5. Estado atual
 
-**Fase:** análise de requisitos e documentação inicial.
+O projeto encontra-se na fase de análise e especificação.
 
-Até ao momento, o trabalho incidiu sobre:
-- Análise da descrição inicial do projeto.
-- Identificação de ambiguidades e pressupostos.
-- Definição preliminar do MVP.
-- Elaboração de User Stories e critérios de aceitação.
-- Organização da documentação para apoiar as próximas fases.
+A documentação está a ser revista para garantir que corresponde ao enquadramento original fornecido pelo cliente.
 
-A implementação da aplicação ainda não está documentada como iniciada.
+Ainda não foram escolhidas tecnologias, arquitetura, base de dados ou mecanismos de autenticação.
 
-## Tecnologias
+## 6. Princípios de trabalho
 
-As tecnologias de implementação ainda não foram definidas. A escolha deverá ser feita numa fase posterior, considerando os requisitos, as restrições e os objetivos do projeto.
-
-## Pressupostos e limitações
-
-- A aplicação será inicialmente destinada a utilização individual.
-- O armazenamento local não garante sincronização nem cópias de segurança.
-- Os requisitos e pressupostos deverão ser revistos antes do desenvolvimento.
-- A documentação poderá evoluir à medida que forem tomadas decisões técnicas e funcionais.
-
-## Próximos passos
-
-1. Rever e validar os requisitos e pressupostos.
-2. Definir as decisões técnicas necessárias.
-3. Selecionar as tecnologias e a estratégia de testes.
-4. Implementar o MVP de forma incremental.
-5. Verificar as funcionalidades através dos critérios de aceitação.
+- Não assumir funcionalidades que não tenham sido justificadas pelos requisitos.
+- Distinguir requisitos confirmados de pressupostos e questões em aberto.
+- Manter a documentação consistente entre os diferentes ficheiros.
+- Não iniciar a implementação de código nesta fase.
