@@ -1,0 +1,127 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="1190" viewBox="0 0 1440 1190" role="img" aria-labelledby="title description">
+  <title id="title">Wireframe de baixa fidelidade — Projetos e tarefas da equipa Matriz</title>
+  <desc id="description">Ecrã de consulta de projetos associados a uma equipa, com tarefas do projeto selecionado, indicação de que a representação do progresso ainda está por definir e variantes dos estados loading, vazio e erro.</desc>
+  <style>
+    text { font-family: Arial, Helvetica, sans-serif; fill: #202124; }
+    .muted { fill: #5f6368; }
+    .small { font-size: 14px; }
+    .body { font-size: 16px; }
+    .label { font-size: 14px; font-weight: 700; }
+    .heading { font-size: 24px; font-weight: 700; }
+    .subheading { font-size: 18px; font-weight: 700; }
+    .panel { fill: #ffffff; stroke: #9aa0a6; stroke-width: 1.5; }
+    .soft { fill: #f1f3f4; stroke: #dadce0; stroke-width: 1; }
+    .line { stroke: #dadce0; stroke-width: 1; }
+    .accent { fill: #e8f0fe; stroke: #8ab4f8; stroke-width: 1.5; }
+    .button { fill: #ffffff; stroke: #5f6368; stroke-width: 1.5; }
+  </style>
+
+  <rect width="1440" height="1190" fill="#f8f9fa"/>
+
+  <text x="52" y="31" class="label muted">MATRIZ · WIREFRAME DE BAIXA FIDELIDADE · DADOS ILUSTRATIVOS</text>
+
+  <rect x="52" y="48" width="1336" height="782" rx="8" class="panel"/>
+  <rect x="52" y="48" width="1336" height="68" rx="8" fill="#ffffff" stroke="#9aa0a6" stroke-width="1.5"/>
+  <line x1="52" y1="116" x2="1388" y2="116" class="line"/>
+
+  <rect x="76" y="66" width="34" height="32" rx="5" class="soft"/>
+  <path d="M84 76h18M84 82h18M84 88h12" stroke="#5f6368" stroke-width="2"/>
+  <text x="122" y="89" class="subheading">Matriz</text>
+  <text x="1112" y="87" class="small muted">Protótipo estático · sem interação</text>
+
+  <rect x="52" y="116" width="224" height="714" fill="#f1f3f4"/>
+  <line x1="276" y1="116" x2="276" y2="830" class="line"/>
+  <text x="78" y="157" class="label muted">NAVEGAÇÃO</text>
+  <rect x="68" y="174" width="192" height="48" rx="6" class="accent"/>
+  <rect x="84" y="189" width="17" height="17" rx="2" fill="none" stroke="#3c4043" stroke-width="1.5"/>
+  <path d="M87 194h11M87 199h11" stroke="#3c4043" stroke-width="1.5"/>
+  <text x="113" y="204" class="body">Projetos</text>
+  <text x="78" y="266" class="small muted">Fluxo representado</text>
+  <text x="78" y="294" class="body">1. Contexto de equipa</text>
+  <text x="78" y="324" class="body">2. Consultar projetos</text>
+  <text x="78" y="354" class="body">3. Ver tarefas</text>
+  <line x1="78" y1="380" x2="250" y2="380" class="line"/>
+  <text x="78" y="410" class="small muted">Seleção e pertença</text>
+  <text x="78" y="430" class="small muted">a equipas, contas e</text>
+  <text x="78" y="450" class="small muted">permissões por definir.</text>
+
+  <text x="310" y="150" class="small muted">Projetos / Equipa de exemplo</text>
+  <text x="310" y="191" class="heading">Projetos da equipa</text>
+  <text x="310" y="219" class="body muted">Consulte projetos e as tarefas do projeto selecionado.</text>
+
+  <text x="1032" y="151" class="label muted">EQUIPA · CONTEXTO ILUSTRATIVO</text>
+  <rect x="1032" y="162" width="320" height="46" rx="5" class="soft"/>
+  <text x="1050" y="191" class="body">Equipa de exemplo</text>
+
+  <text x="310" y="267" class="subheading">Projetos</text>
+  <text x="310" y="290" class="small muted">Exemplos simulados</text>
+
+  <rect x="310" y="306" width="398" height="112" rx="6" class="accent"/>
+  <text x="330" y="337" class="subheading">Plataforma Matriz</text>
+  <text x="330" y="363" class="small muted">Organização do trabalho da equipa.</text>
+  <text x="330" y="394" class="label">Selecionado</text>
+  <path d="M661 359h22m-8-8 8 8-8 8" fill="none" stroke="#3c4043" stroke-width="1.7"/>
+
+  <rect x="310" y="432" width="398" height="112" rx="6" class="panel"/>
+  <text x="330" y="463" class="subheading">Projeto de exemplo B</text>
+  <text x="330" y="489" class="small muted">Descrição ilustrativa do projeto.</text>
+  <text x="330" y="520" class="small muted">Selecionar projeto</text>
+
+  <rect x="310" y="558" width="398" height="112" rx="6" class="panel"/>
+  <text x="330" y="589" class="subheading">Projeto de exemplo C</text>
+  <text x="330" y="615" class="small muted">Descrição ilustrativa do projeto.</text>
+  <text x="330" y="646" class="small muted">Selecionar projeto</text>
+
+  <rect x="738" y="246" width="614" height="456" rx="7" class="panel"/>
+  <text x="766" y="282" class="small muted">PROJETO SELECIONADO</text>
+  <text x="766" y="313" class="subheading">Plataforma Matriz</text>
+  <text x="766" y="339" class="body muted">Organização do trabalho da equipa.</text>
+
+  <rect x="766" y="361" width="558" height="76" rx="5" class="soft"/>
+  <text x="784" y="388" class="label">Progresso do projeto</text>
+  <text x="784" y="415" class="small muted">Representação / cálculo pendente de validação.</text>
+
+  <text x="766" y="476" class="subheading">Tarefas</text>
+  <text x="766" y="499" class="small muted">Exemplos simulados · estados não apresentados</text>
+
+  <rect x="766" y="515" width="558" height="51" rx="4" fill="#ffffff" stroke="#dadce0"/>
+  <text x="784" y="538" class="body">Clarificar requisitos do MVP</text>
+  <text x="784" y="557" class="small muted">Detalhes da tarefa por consultar.</text>
+
+  <rect x="766" y="576" width="558" height="51" rx="4" fill="#ffffff" stroke="#dadce0"/>
+  <text x="784" y="599" class="body">Modelar dados essenciais</text>
+  <text x="784" y="618" class="small muted">Detalhes da tarefa por consultar.</text>
+
+  <rect x="766" y="637" width="558" height="51" rx="4" fill="#ffffff" stroke="#dadce0"/>
+  <text x="784" y="660" class="body">Desenhar o ecrã inicial</text>
+  <text x="784" y="679" class="small muted">Detalhes da tarefa por consultar.</text>
+
+  <text x="310" y="738" class="small muted">Nota: este protótipo ilustra consulta; não representa criação, edição, atribuição ou regras de acesso.</text>
+
+  <text x="52" y="878" class="heading">Variantes de estado do mesmo ecrã</text>
+  <text x="52" y="904" class="body muted">Estados de interface ilustrativos, não funcionalidades de negócio adicionais.</text>
+
+  <rect x="52" y="928" width="426" height="220" rx="7" class="panel"/>
+  <text x="76" y="965" class="subheading">A carregar</text>
+  <rect x="76" y="985" width="155" height="16" rx="4" class="soft"/>
+  <rect x="76" y="1011" width="370" height="40" rx="5" class="soft"/>
+  <rect x="76" y="1062" width="370" height="40" rx="5" class="soft"/>
+  <text x="76" y="1128" class="small muted">Esqueleto visual enquanto os dados são obtidos.</text>
+
+  <rect x="507" y="928" width="426" height="220" rx="7" class="panel"/>
+  <text x="531" y="965" class="subheading">Sem projetos</text>
+  <rect x="531" y="986" width="378" height="136" rx="5" fill="#ffffff" stroke="#dadce0"/>
+  <text x="553" y="1030" class="body">Ainda não existem projetos</text>
+  <text x="553" y="1054" class="body">para esta equipa.</text>
+  <text x="553" y="1096" class="small muted">Mensagem alinhada com US01.</text>
+
+  <rect x="962" y="928" width="426" height="220" rx="7" class="panel"/>
+  <text x="986" y="965" class="subheading">Erro ao carregar</text>
+  <rect x="986" y="986" width="378" height="136" rx="5" fill="#ffffff" stroke="#dadce0"/>
+  <text x="1008" y="1030" class="body">Não foi possível carregar</text>
+  <text x="1008" y="1054" class="body">os projetos.</text>
+  <rect x="1008" y="1073" width="124" height="34" rx="4" class="button"/>
+  <text x="1027" y="1095" class="small">Tentar novamente</text>
+
+  <text x="52" y="1176" class="small muted">Escala vetorial · protótipo não interativo · conteúdos apresentados são fictícios.</text>
+</svg>

@@ -48,7 +48,7 @@ O projeto encontra-se na fase de análise e especificação.
 
 A documentação está a ser revista para garantir que corresponde ao enquadramento original fornecido pelo cliente.
 
-Ainda não foram escolhidas tecnologias, arquitetura, base de dados ou mecanismos de autenticação.
+Existe uma proposta de arquitetura monólito modular para o MVP, documentada em `docs/architecture.md` e revista em `docs/architecture-pack.md`. Esta proposta deverá ser validada antes da implementação. Ainda não foram escolhidas tecnologias, base de dados ou mecanismos de autenticação e autorização.
 
 ## 6. Princípios de trabalho
 

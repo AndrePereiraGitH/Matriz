@@ -1,0 +1,159 @@
+openapi: 3.1.0
+info:
+  title: Matriz API
+  version: 0.1.0
+  summary: Contrato preliminar de consulta de projetos e tarefas
+  description: |
+    Especificação simplificada para duas operações de consulta do MVP,
+    alinhadas com US01 e US03. Este contrato não representa uma API
+    implementada nem aprova decisões de autenticação ou autorização, que
+    permanecem por definir. A ausência de um requisito de segurança nesta
+    especificação não significa que os recursos sejam públicos. Os
+    identificadores inteiros positivos são uma representação proposta ao
+    nível do contrato HTTP e não definem os tipos físicos de persistência.
+servers:
+  - url: https://api.example.com
+    description: URL ilustrativo; não corresponde a um serviço ativo.
+tags:
+  - name: Projetos
+  - name: Tarefas
+
+paths:
+  /teams/{teamId}/projects:
+    get:
+      tags:
+        - Projetos
+      summary: Listar projetos associados a uma equipa
+      description: Corresponde à consulta de projetos da equipa (US01).
+      operationId: listTeamProjects
+      parameters:
+        - name: teamId
+          in: path
+          required: true
+          description: Identificador da equipa.
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        '200':
+          description: Lista de projetos da equipa; pode estar vazia.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProjectSummary'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /projects/{projectId}/tasks:
+    get:
+      tags:
+        - Tarefas
+      summary: Listar tarefas associadas a um projeto
+      description: Corresponde à consulta de tarefas de um projeto (US03).
+      operationId: listProjectTasks
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          description: Identificador do projeto.
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        '200':
+          description: Lista de tarefas do projeto; pode estar vazia.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TaskSummary'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+components:
+  schemas:
+    ProjectSummary:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: integer
+          minimum: 1
+          description: Identificador do projeto.
+        name:
+          type: string
+          description: Nome do projeto.
+        description:
+          type:
+            - string
+            - 'null'
+          description: Descrição, se definida.
+
+    TaskSummary:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - projectId
+        - title
+      properties:
+        id:
+          type: integer
+          minimum: 1
+          description: Identificador da tarefa.
+        projectId:
+          type: integer
+          minimum: 1
+          description: Identificador do projeto a que a tarefa pertence.
+        title:
+          type: string
+          description: Título da tarefa.
+        description:
+          type:
+            - string
+            - 'null'
+          description: Descrição, se definida.
+
+    ApiError:
+      type: object
+      additionalProperties: false
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          description: Código estável do erro.
+        message:
+          type: string
+          description: Descrição legível do erro.
+
+  responses:
+    BadRequest:
+      description: Parâmetro de caminho inválido.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          example:
+            code: INVALID_PARAMETER
+            message: O identificador deve ser um inteiro positivo.
+    NotFound:
+      description: A equipa ou o projeto indicado não foi encontrado.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          example:
+            code: RESOURCE_NOT_FOUND
+            message: O recurso solicitado não foi encontrado.
