@@ -28,19 +28,19 @@ Os componentes seguintes são lógicos e não implicam tecnologias ou processos 
 |---|---|
 | Interface da aplicação | Interface React/Vite para autenticação, painel, projetos, tarefas, filtros, responsáveis e comentários; apresentar loading, empty e error states. |
 | Aplicação / casos de uso | Coordenar operações da API, validar pedidos e aplicar a política de acesso depois de validada; não duplicar regras dos módulos de domínio. |
-| Módulo de autenticação | Iniciar/terminar sessão, expor o utilizador atual e disponibilizar contas de demonstração por seed. O protocolo de sessão ainda requer decisão. |
-| Módulo de equipas e projetos | Representar equipas e projetos; cada projeto pertence a uma equipa; suportar operações e pesquisa autorizadas. |
-| Módulo de tarefas | Gerir tarefas com estados `TODO`, `IN_PROGRESS`, `DONE` e prioridades `LOW`, `MEDIUM`, `HIGH`; filtrar por estes campos. |
-| Módulo de atribuições | Associar múltiplos utilizadores elegíveis a tarefas e remover associações; a regra de elegibilidade aguarda validação. |
-| Módulo de comentários | Adicionar/listar comentários com autor autenticado e data atribuída pelo sistema. |
+| Módulo de autenticação | Iniciar/terminar sessão, expor o utilizador atual e disponibilizar contas de demonstração por seed. Usa sessões opacas persistidas no SQLite, cookie HTTP-only e token CSRF sincronizador nos pedidos de escrita. |
+| Módulo de equipas e projetos | Representar equipas e projetos; cada projeto pertence a uma equipa e regista como proprietário o utilizador autenticado que o criou; aplicar acesso de membros e gestão exclusiva pelo proprietário. |
+| Módulo de tarefas | Gerir tarefas com estados `TODO`, `IN_PROGRESS`, `DONE` e prioridades `LOW`, `MEDIUM`, `HIGH`; filtrar por estes campos e validar a pertença à equipa do projeto. |
+| Módulo de atribuições | Associar membros da equipa do projeto a tarefas e remover associações; validar acesso no backend. |
+| Módulo de comentários | Adicionar/listar comentários com autor obtido da sessão autenticada e data atribuída pelo sistema. |
 | Módulo de painel | Apresentar projetos acessíveis e contagens de tarefas por estado, sem inventar uma percentagem de progresso. |
 | Persistência | Prisma/SQLite para os dados relacionais do MVP; esquema e seed mantidos em migrações versionadas. |
 
 ## 5. Limites e questões por resolver
 
 - A arquitetura modular está escolhida para o plano; os módulos não correspondem a serviços independentes.
-- A matriz de autorização, a elegibilidade de responsáveis e a pertença de utilizadores a várias equipas aguardam validação do formador. Não presumir papéis.
-- O mecanismo técnico de sessão/autenticação continua por definir, embora os fluxos de login/logout/perfil estejam no âmbito.
+- A política de autorização aprovada é baseada na pertença à equipa e na propriedade do projeto. A possibilidade de pertença a múltiplas equipas continua por validar.
+- A sessão opaca persistida no SQLite, a cookie HTTP-only e a mitigação CSRF estão aprovadas para autenticação. Esta decisão não define a matriz de autorização das operações de negócio.
 - Os estados e prioridades das tarefas estão definidos; regras de transição não estão.
 - O painel apresenta contagens por estado; outra métrica de progresso do projeto não está definida.
 - A política de eliminação de tarefas/comentários/atribuições e projetos/tarefas aguarda definição.

@@ -42,7 +42,7 @@ Como ainda não foram clarificados todos os detalhes funcionais, algumas histór
 - Quando um projeto é associado a uma equipa, essa associação fica registada no sistema.
 - Quando consulto os projetos de uma equipa, devem ser apresentados os projetos associados a essa equipa.
 
-**Questão em aberto:** É necessário definir quem pode criar projetos e gerir estas associações.
+**Regra aprovada:** O projeto só pode ser criado numa equipa de que o utilizador seja membro. O criador é o proprietário e é o único que pode editar ou eliminar o projeto.
 
 ### US03 — Gerir tarefas
 
@@ -141,7 +141,9 @@ Como ainda não foram clarificados todos os detalhes funcionais, algumas histór
 - O utilizador consegue listar e pesquisar pelo nome os projetos a que tem acesso.
 - O utilizador consegue consultar o detalhe de um projeto.
 - O utilizador autorizado consegue criar, editar e eliminar projetos.
-- A aplicação rejeita operações não autorizadas segundo a matriz de permissões a validar com o formador.
+- O nome do projeto é obrigatório e tem entre 3 e 100 caracteres; a descrição é opcional e tem até 1000 caracteres.
+- O nome do projeto não pode conter apenas espaços; a API rejeita dados inválidos com um erro identificando o campo, apresentado pela interface.
+- Apenas membros da equipa podem consultar o projeto; apenas o proprietário pode editá-lo ou eliminá-lo.
 - Cada projeto pertence a uma única equipa, conforme decisão de planeamento para a Ficha 03.
 
 ### US09 — Gerir e filtrar tarefas
@@ -159,8 +161,13 @@ Como ainda não foram clarificados todos os detalhes funcionais, algumas histór
 - As tarefas são associadas ao projeto e a sua consulta identifica esse projeto.
 - Os estados aceites são `TODO`, `IN_PROGRESS` e `DONE`.
 - As prioridades aceites são `LOW`, `MEDIUM` e `HIGH`.
+- O título da tarefa é obrigatório e não pode conter apenas espaços; a API rejeita dados inválidos com um erro identificando o campo, apresentado pela interface.
+- O título tem entre 3 e 150 caracteres e a descrição opcional admite até 2000 caracteres.
+- Na criação, o estado predefinido é `TODO` e a prioridade predefinida é `MEDIUM`.
+- A interface pode apresentar os estados e prioridades em português, mantendo os valores técnicos enviados e recebidos pela API.
 - É possível filtrar as tarefas de um projeto por estado e/ou prioridade.
-- Permissões de consulta e alteração seguem a política a validar com o formador.
+- Apenas membros da equipa do projeto podem consultar e gerir as tarefas.
+- A interface pede confirmação antes da eliminação; a eliminação de tarefas com comentários ou atribuições é recusada para preservar os registos dependentes.
 
 ### US10 — Gerir responsáveis de tarefas
 
@@ -177,7 +184,7 @@ Como ainda não foram clarificados todos os detalhes funcionais, algumas histór
 - Uma tarefa pode ter mais do que um responsável.
 - Uma atribuição existente não é duplicada.
 - É possível consultar os responsáveis e remover uma atribuição.
-- A regra que determina quem é elegível e quem pode gerir atribuições aguarda validação do formador.
+- Apenas membros da equipa do projeto são elegíveis; membros podem consultar e gerir atribuições.
 
 ### US11 — Comentar tarefas
 
@@ -194,7 +201,7 @@ Como ainda não foram clarificados todos os detalhes funcionais, algumas histór
 - Um comentário fica associado à tarefa, ao utilizador autenticado que o escreveu e à data de criação.
 - A listagem apresenta autor e data de cada comentário.
 - O cliente não pode indicar ou falsificar o autor ou a data de criação.
-- As permissões para consultar e adicionar comentários aguardam validação do formador.
+- Apenas membros da equipa do projeto podem consultar e adicionar comentários.
 
 ### US12 — Consultar o painel inicial
 
@@ -222,4 +229,4 @@ Como ainda não foram clarificados todos os detalhes funcionais, algumas histór
 
 As US01–US06 documentam o âmbito inicial. As US07–US12 registam as funcionalidades adicionais explicitamente pedidas para a Ficha 03, conciliadas com o MVP inicial.
 
-Os critérios dependentes de papéis, elegibilidade e acesso não devem ser tratados como implementáveis até à validação da respetiva matriz com o formador.
+As regras de autorização aprovadas são baseadas na pertença à equipa e na propriedade do projeto. Outras regras, como transferência entre equipas e pertença de um utilizador a várias equipas, continuam por validar.

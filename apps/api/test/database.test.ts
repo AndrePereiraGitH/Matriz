@@ -270,6 +270,7 @@ describe('SQLite schema migration', () => {
     expect(ana.name).toBe('Alteração local preservada')
     expect(ana.memberships).toHaveLength(1)
     expect(ana.memberships[0]?.team.projects).toHaveLength(1)
+    expect(ana.memberships[0]?.team.projects[0]?.ownerId).toBe(ana.id)
     expect(ana.memberships[0]?.team.projects[0]?.tasks).toHaveLength(1)
     expect(bruno.passwordHash).toMatch(/^scrypt\$[a-f0-9]+\$[a-f0-9]+$/)
     expect(bruno.memberships).toHaveLength(1)
@@ -277,6 +278,7 @@ describe('SQLite schema migration', () => {
     expect(bruno.memberships[0]?.team.projects[0]?.id).not.toBe(
       ana.memberships[0]?.team.projects[0]?.id,
     )
+    expect(bruno.memberships[0]?.team.projects[0]?.ownerId).toBe(bruno.id)
   })
 
   it('rejects weak demo passwords before writing any data', async () => {

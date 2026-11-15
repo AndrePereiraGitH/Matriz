@@ -11,10 +11,13 @@ Este documento regista o âmbito, as decisões técnicas aprovadas para o planea
 - Cada projeto pertence a uma única equipa; uma equipa pode ter vários projetos.
 - Estados de tarefa: `TODO`, `IN_PROGRESS`, `DONE`.
 - Prioridades de tarefa: `LOW`, `MEDIUM`, `HIGH`.
+- Título de tarefa: obrigatório, entre 3 e 150 caracteres; descrição opcional até 2000 caracteres; valores iniciais `TODO` e `MEDIUM`.
+- A interface pode traduzir estados e prioridades, mantendo os valores técnicos no contrato da API.
 - Contas de demonstração são criadas por seed para simplificar autenticação.
 - A seed de demonstração é uma operação explícita, não executada no arranque; usa credenciais locais fictícias e hashes de password. Os fixtures em equipas distintas são dados de teste, não uma decisão sobre autorização.
 - Registo público e recuperação de palavra-passe são extensões opcionais, fora do MVP.
-- As operações de negócio protegidas não serão implementadas até o plano estar consolidado e as regras de acesso relevantes serem validadas com o formador. Scaffold, configuração e estrutura relacional podem avançar sem definir essas permissões.
+- Regras de autorização aprovadas para o MVP: só membros da equipa podem consultar projetos e respetivos recursos; o utilizador que cria um projeto é o seu proprietário e é o único que o pode editar ou eliminar; membros da equipa podem gerir tarefas, comentários e atribuições; apenas membros da equipa são elegíveis para atribuição.
+- Eliminações de projetos com tarefas e de tarefas com comentários ou atribuições são recusadas (HTTP 409); a base de dados usa chaves estrangeiras restritivas para evitar registos órfãos. A interface de projetos pede confirmação antes da tentativa de eliminação.
 
 ## 3. Stack e arquitetura registadas
 
@@ -39,27 +42,20 @@ Esta escolha não introduz serviços externos. Detalhes de desenvolvimento, aloj
 
 ## 5. Decisões pendentes do formador
 
-As seguintes definições são bloqueios para autorização e operações de escrita. Não implementar regras de permissão inferidas:
+As seguintes definições continuam por esclarecer. Não inferir regras adicionais:
 
-1. Quem pode listar e consultar projetos, e quem pode criar, editar ou eliminar cada projeto?
-2. Quem pode consultar e alterar tarefas?
-3. Quem pode consultar ou adicionar comentários?
-4. Quem pode associar ou remover responsáveis?
-5. Que utilizadores são elegíveis para uma tarefa — por exemplo, membros da equipa do projeto?
-6. Pode um utilizador pertencer a mais do que uma equipa?
-7. Pode um projeto ser transferido para outra equipa?
-8. Eliminar um projeto elimina as respetivas tarefas/comentários, é recusado com dependências ou segue outra política? E eliminar uma tarefa com comentários/atribuições?
-9. Qual o mecanismo de sessão/autenticação a adotar para o contrato e a aplicação, e que mitigação CSRF é necessária?
-10. As contagens de tarefas por estado do painel são globais ou agrupadas por projeto?
+1. Pode um utilizador pertencer a mais do que uma equipa?
+2. Pode um projeto ser transferido para outra equipa?
 
 ## 6. Segurança e privacidade
 
-- O sistema deve autenticar as operações que exigem identidade e impedir acesso não autorizado; a política concreta aguarda validação.
+- O sistema deve autenticar as operações protegidas e aplicar autorização por pertença à equipa e propriedade do projeto como definido acima.
+- O mecanismo de autenticação aprovado para a aplicação é uma sessão opaca persistida no SQLite, transportada por cookie HTTP-only com validade absoluta de oito horas. Pedidos autenticados de escrita exigem token CSRF sincronizador.
 - Senhas nunca devem ser armazenadas em texto simples; guardar apenas hashes de senha.
 - Segredos e credenciais de demonstração não devem ser commitados como valores reais; documentar como as contas seed são inicializadas de forma segura.
 - Autoria de comentários deve derivar do utilizador autenticado.
-- Consultas e listas devem respeitar a política de acesso validada para evitar exposição de dados de outras equipas.
+- O backend filtra listas e valida acesso individual a cada projeto antes de ler ou alterar tarefas, comentários e atribuições; a mesma proteção aplica-se a pedidos diretos à API.
 
 ## 7. Estado
 
-O âmbito da Ficha 03, stack aprovada para o plano, relação projeto–equipa 1:N e enums de tarefa foram registados. A política de autorização, elegibilidade, pertença de utilizadores a equipas, eliminação de dependências e protocolo de sessão continuam pendentes de validação. O plano pode ser preparado, mas incrementos dependentes destas regras ficam bloqueados.
+O âmbito da Ficha 03, stack aprovada para o plano, relação projeto–equipa 1:N, enums de tarefa, mecanismo de sessão, política de autorização, proteção contra eliminação de registos com dependências e contagens de tarefas por estado agrupadas por projeto foram registados. A pertença a múltiplas equipas e a transferência de projetos continuam pendentes.

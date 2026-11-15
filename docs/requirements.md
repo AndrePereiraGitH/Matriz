@@ -23,7 +23,7 @@ O âmbito da Ficha 03 consolida o MVP inicial com as funcionalidades necessária
 5. Comentários: adicionar e listar comentários de uma tarefa, identificando autor e data.
 6. Painel inicial: apresentar projetos acessíveis, contagens de tarefas por estado e navegação para o detalhe.
 
-Esta expansão concretiza capacidades do MVP original, mas não confirma automaticamente as regras de autorização. A matriz de permissões e a regra de elegibilidade dos responsáveis continuam pendentes de validação com o formador.
+Esta expansão concretiza capacidades do MVP original. Para este incremento, foi aprovada a seguinte regra de autorização: membros da equipa podem consultar e gerir tarefas, comentários e atribuições; apenas o proprietário do projeto pode editá-lo ou eliminá-lo; responsáveis elegíveis são membros da equipa. A aplicação valida estas regras também nos pedidos diretos à API.
 
 ## 3. Requisitos funcionais
 
@@ -46,20 +46,21 @@ Os requisitos seguintes consolidam o enquadramento inicial do cliente com o âmb
 
 Os valores de estado e prioridade acima foram aprovados para o planeamento da Ficha 03. As regras de transição entre estados ainda não estão definidas.
 
+Para projetos, o nome é obrigatório e deve ter entre 3 e 100 caracteres; a descrição é opcional e admite até 1000 caracteres. A API e a interface devem aplicar estes limites.
+
+Nomes de projetos e títulos de tarefas são obrigatórios na criação, não podem ser compostos apenas por espaços e são aparados nas extremidades antes de serem guardados. O título da tarefa deve ter entre 3 e 150 caracteres; a descrição é opcional e admite até 2000 caracteres. O estado inicial é `TODO` e a prioridade inicial é `MEDIUM`. A API valida estes dados e devolve erros identificando o campo inválido; a interface apresenta a mensagem devolvida e pode traduzir os valores técnicos dos estados e prioridades para português.
+
+Para evitar perda de informação ou registos órfãos, eliminar um projeto com tarefas associadas e eliminar uma tarefa com comentários ou atribuições associadas são operações recusadas. A aplicação apresenta o motivo ao utilizador; as chaves estrangeiras também impedem a eliminação na base de dados.
+
 ### 3.1. Regras e detalhes por esclarecer
 
-Os seguintes comportamentos precisam de ser discutidos e validados antes de orientar a implementação:
+Os seguintes comportamentos continuam por esclarecer:
 
-- Que papéis podem criar, editar ou eliminar projetos?
 - A edição de um projeto pode transferi-lo para outra equipa?
-- Quem pode consultar ou alterar tarefas, comentar ou gerir atribuições?
-- Que utilizadores são elegíveis para atribuição a uma tarefa?
 - Um utilizador pode pertencer a várias equipas?
 - As contagens de tarefas por estado são globais no painel ou agrupadas por projeto?
 - As transições entre estados de tarefa são livres ou sujeitas a regras?
 - O progresso do projeto é representado apenas por contagens por estado ou requer outro indicador?
-- O que acontece às tarefas, atribuições e comentários quando um projeto ou tarefa é eliminado?
-- Que regras de validação e limites de texto devem aplicar-se aos campos?
 
 ## 4. Requisitos não funcionais
 
@@ -96,14 +97,13 @@ O registo público e a recuperação de palavra-passe são extensões opcionais 
 
 ## 7. Questões por validar antes da implementação
 
-1. Qual é a matriz exata de permissões por papel para projetos, tarefas, comentários e atribuições?
-2. Como se define um utilizador elegível para ser responsável por uma tarefa?
-3. Que política de eliminação se aplica a projetos e tarefas com dados dependentes?
-4. É necessária uma representação do progresso do projeto além das contagens por estado no painel?
-5. Que requisitos de segurança, desempenho, disponibilidade e retenção de dados devem ser aplicados?
+1. Pode um utilizador pertencer a várias equipas?
+2. Pode um projeto ser transferido para outra equipa?
+3. É necessária uma representação do progresso do projeto além das contagens por estado no painel?
+4. Que requisitos de segurança, desempenho, disponibilidade e retenção de dados devem ser aplicados?
 
 ## 8. Estado da especificação
 
-Este documento consolida o âmbito inicial com a Ficha 03. O âmbito funcional indicado na secção 3 foi fornecido para esta ficha; a autorização detalhada, a elegibilidade de responsáveis e as regras de eliminação permanecem pendentes.
+Este documento consolida o âmbito inicial com a Ficha 03. A autorização, elegibilidade de responsáveis e política restritiva de eliminação descritas na secção 3 foram aprovadas para a implementação; pertença a múltiplas equipas, transferência de projetos e agregação das contagens permanecem pendentes.
 
 O contrato, o modelo de dados e o plano de implementação devem ser mantidos alinhados com estas distinções entre âmbito confirmado e regras por validar.

@@ -15,6 +15,8 @@ model User {
   memberships  TeamMembership[]
   assignments  TaskAssignment[]
   comments     Comment[]
+  sessions     Session[]
+  ownedProjects Project[]       @relation("ProjectOwner")
   createdAt    DateTime         @default(now()) @map("created_at")
   updatedAt    DateTime         @updatedAt @map("updated_at")
 
@@ -43,14 +45,17 @@ model TeamMembership {
 model Project {
   id          String   @id @default(cuid())
   teamId      String   @map("team_id")
+  ownerId     String?  @map("owner_id")
   name        String
   description String?
   team        Team     @relation(fields: [teamId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  owner       User?    @relation("ProjectOwner", fields: [ownerId], references: [id], onDelete: Restrict, onUpdate: Cascade)
   tasks       Task[]
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
   @@index([teamId])
+  @@index([ownerId])
   @@map("projects")
 }
 
@@ -96,4 +101,17 @@ model Comment {
   @@index([taskId, createdAt])
   @@index([authorId])
   @@map("comments")
+}
+
+model Session {
+  tokenHash     String   @id @map("token_hash")
+  csrfTokenHash String   @map("csrf_token_hash")
+  userId        String   @map("user_id")
+  expiresAt     DateTime @map("expires_at")
+  createdAt     DateTime @default(now()) @map("created_at")
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("sessions")
 }

@@ -45,6 +45,8 @@ CREATE TABLE "tasks" (
     "priority" TEXT NOT NULL DEFAULT 'MEDIUM',
     "created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" DATETIME NOT NULL,
+    CONSTRAINT "tasks_status_check" CHECK ("status" IN ('TODO', 'IN_PROGRESS', 'DONE')),
+    CONSTRAINT "tasks_priority_check" CHECK ("priority" IN ('LOW', 'MEDIUM', 'HIGH')),
     CONSTRAINT "tasks_project_id_fkey" FOREIGN KEY ("project_id") REFERENCES "projects" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
 );
 

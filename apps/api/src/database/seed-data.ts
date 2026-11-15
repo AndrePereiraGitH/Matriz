@@ -1,5 +1,5 @@
-import { randomBytes, scryptSync } from 'node:crypto'
 import type { Prisma, PrismaClient } from '@prisma/client'
+import { hashPassword } from '../auth/password.js'
 
 const DEMO_USERS = [
   {
@@ -29,17 +29,6 @@ const DEMO_USERS = [
     priority: 'HIGH',
   },
 ] as const
-
-const SCRYPT_KEY_LENGTH = 64
-
-function hashPassword(password: string): string {
-  const salt = randomBytes(16)
-  const hash = scryptSync(password, salt, SCRYPT_KEY_LENGTH, {
-    maxmem: 64 * 1024 * 1024,
-  })
-
-  return `scrypt$${salt.toString('hex')}$${hash.toString('hex')}`
-}
 
 function validatePassword(password: string, label: string): void {
   if (password.length < 12) {
@@ -98,9 +87,10 @@ export async function seedDemoData(
           id: demoUser.projectId,
           name: demoUser.projectName,
           teamId: demoUser.teamId,
+          ownerId: user.id,
           description: 'Dados fictícios para desenvolvimento local.',
         },
-        update: {},
+        update: { ownerId: user.id },
       })
 
       await tx.task.upsert({

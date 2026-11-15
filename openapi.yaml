@@ -6,11 +6,15 @@ info:
   description: |
     Contrato para autenticação, projetos, tarefas, responsáveis, comentários
     e painel inicial. As operações protegidas requerem um utilizador
-    autenticado. A matriz de autorização por papel e a elegibilidade de
-    responsáveis ainda aguardam validação com o formador.
+    autenticado e autorização sobre a equipa do projeto. Membros da equipa
+    podem consultar e gerir tarefas, comentários e atribuições. O proprietário
+    do projeto (utilizador que o criou) é o único que o pode editar ou eliminar.
+    Os responsáveis elegíveis são membros da equipa do projeto.
 
-    A autenticação por cookie de sessão HTTP-only é uma proposta de contrato
-    para a aplicação web e deve ser confirmada antes da implementação.
+    A autenticação usa uma sessão opaca persistida no SQLite e uma cookie
+    HTTP-only com validade absoluta de oito horas. O token de sessão não é
+    exposto em respostas nem armazenado em texto simples. Pedidos de escrita
+    autenticados requerem o token CSRF devolvido no login ou em /auth/me.
     Registo público e recuperação de palavra-passe não fazem parte do MVP.
 servers:
   - url: http://localhost:3000/api/v1
@@ -47,18 +51,20 @@ paths:
           headers:
             Set-Cookie:
               description: |
-                Cookie de sessão HTTP-only (contrato proposto). Em produção
-                deve usar Secure e uma política SameSite adequada.
+                Cookie matriz_session com Path=/api/v1, HttpOnly, SameSite=Lax
+                e Max-Age=28800. Secure é aplicado em produção.
               schema:
                 type: string
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
+                $ref: '#/components/schemas/AuthenticatedSession'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '422':
           $ref: '#/components/responses/ValidationError'
 
@@ -67,11 +73,17 @@ paths:
       tags: [Autenticação]
       summary: Terminar sessão
       operationId: logout
+      security:
+        - sessionCookie: []
+          csrfToken: []
+      description: Requer o token CSRF recebido no login ou na consulta do perfil.
       responses:
         '204':
           description: Sessão terminada e cookie invalidado.
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
 
   /auth/me:
     get:
@@ -80,21 +92,25 @@ paths:
       operationId: getCurrentUser
       responses:
         '200':
-          description: Perfil público do utilizador autenticado.
+          description: |
+            Perfil público, novo token CSRF (o anterior é invalidado) e
+            instante de expiração absoluta da sessão.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
+                $ref: '#/components/schemas/AuthenticatedSession'
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
 
   /teams:
     get:
       tags: [Equipas]
       summary: Listar equipas disponíveis ao utilizador
       description: |
-        Usado para escolher a equipa ao criar um projeto. Os critérios de
-        disponibilidade dependem da política de acesso ainda por validar.
+        Usado para escolher a equipa ao criar um projeto. Apenas são devolvidas
+        equipas das quais o utilizador autenticado é membro.
       operationId: listTeams
       responses:
         '200':
@@ -115,10 +131,8 @@ paths:
       tags: [Painel]
       summary: Consultar projetos acessíveis e contagens de tarefas
       description: |
-        As contagens são agregadas por estado a partir das tarefas de cada
-        projeto nesta proposta de contrato. A resposta inclui zero para
-        estados sem tarefas. Confirmar se o painel deve agregar por projeto
-        ou apresentar contagens globais antes da implementação.
+        As contagens são agregadas por estado para cada projeto acessível.
+        A resposta inclui zero para estados sem tarefas.
       operationId: getDashboard
       responses:
         '200':
@@ -146,7 +160,7 @@ paths:
             type: string
       responses:
         '200':
-          description: Projetos acessíveis ao utilizador, possivelmente lista vazia.
+          description:           Projetos de equipas onde o utilizador autenticado é membro, possivelmente lista vazia.
           content:
             application/json:
               schema:
@@ -162,7 +176,14 @@ paths:
     post:
       tags: [Projetos]
       summary: Criar projeto
+      description: |
+        O projeto só pode ser criado numa equipa da qual o utilizador seja
+        membro. O proprietário é inferido da sessão autenticada; campos como
+        ownerId enviados pelo cliente são rejeitados.
       operationId: createProject
+      security:
+        - sessionCookie: []
+          csrfToken: []
       requestBody:
         required: true
         content:
@@ -193,6 +214,7 @@ paths:
     get:
       tags: [Projetos]
       summary: Consultar projeto
+      description: Apenas membros da equipa do projeto podem consultar este recurso.
       operationId: getProject
       responses:
         '200':
@@ -210,7 +232,11 @@ paths:
     patch:
       tags: [Projetos]
       summary: Editar projeto
+      description: Apenas o proprietário do projeto pode editar os seus dados.
       operationId: updateProject
+      security:
+        - sessionCookie: []
+          csrfToken: []
       requestBody:
         required: true
         content:
@@ -238,9 +264,12 @@ paths:
       tags: [Projetos]
       summary: Eliminar projeto
       description: |
-        Política de eliminação de tarefas dependentes ainda aguarda decisão.
-        A implementação deve aplicar a política aprovada, sem assumir cascata.
+        Apenas o proprietário pode eliminar o projeto. A eliminação é recusada
+        se existirem tarefas dependentes.
       operationId: deleteProject
+      security:
+        - sessionCookie: []
+          csrfToken: []
       responses:
         '204':
           description: Projeto eliminado.
@@ -259,6 +288,7 @@ paths:
     get:
       tags: [Tarefas]
       summary: Listar e filtrar tarefas do projeto
+      description: Apenas membros da equipa do projeto podem consultar tarefas.
       operationId: listProjectTasks
       parameters:
         - name: status
@@ -291,7 +321,11 @@ paths:
     post:
       tags: [Tarefas]
       summary: Criar tarefa no projeto
+      description: Membros da equipa do projeto podem criar tarefas.
       operationId: createTask
+      security:
+        - sessionCookie: []
+          csrfToken: []
       requestBody:
         required: true
         content:
@@ -322,6 +356,7 @@ paths:
     get:
       tags: [Tarefas]
       summary: Consultar tarefa
+      description: Apenas membros da equipa do projeto podem consultar a tarefa.
       operationId: getTask
       responses:
         '200':
@@ -339,7 +374,11 @@ paths:
     patch:
       tags: [Tarefas]
       summary: Editar tarefa
+      description: Membros da equipa do projeto podem editar tarefas.
       operationId: updateTask
+      security:
+        - sessionCookie: []
+          csrfToken: []
       requestBody:
         required: true
         content:
@@ -366,8 +405,11 @@ paths:
     delete:
       tags: [Tarefas]
       summary: Eliminar tarefa
-      description: A política para atribuições e comentários dependentes aguarda decisão.
+      description: Membros da equipa podem eliminar tarefas sem comentários ou atribuições.
       operationId: deleteTask
+      security:
+        - sessionCookie: []
+          csrfToken: []
       responses:
         '204':
           description: Tarefa eliminada.
@@ -386,7 +428,7 @@ paths:
     get:
       tags: [Responsáveis]
       summary: Listar utilizadores elegíveis para a tarefa
-      description: A regra de elegibilidade aguarda validação do formador.
+      description: Apenas membros da equipa do projeto são elegíveis para atribuição.
       operationId: listEligibleAssignees
       responses:
         '200':
@@ -410,6 +452,7 @@ paths:
     get:
       tags: [Responsáveis]
       summary: Listar responsáveis de uma tarefa
+      description: Apenas membros da equipa do projeto podem consultar as atribuições.
       operationId: listTaskAssignees
       responses:
         '200':
@@ -434,13 +477,18 @@ paths:
         in: path
         required: true
         schema:
-          type: integer
-          minimum: 1
+          type: string
+          minLength: 1
     put:
       tags: [Responsáveis]
       summary: Associar responsável à tarefa
-      description: A operação é idempotente; elegibilidade e autorização aguardam validação.
+      description: |
+        Membros da equipa podem gerir atribuições. Apenas utilizadores membros
+        dessa equipa são elegíveis. A operação é idempotente.
       operationId: assignTaskUser
+      security:
+        - sessionCookie: []
+          csrfToken: []
       responses:
         '204':
           description: Responsável associado ou associação já existente.
@@ -455,7 +503,11 @@ paths:
     delete:
       tags: [Responsáveis]
       summary: Remover responsável da tarefa
+      description: Membros da equipa do projeto podem remover atribuições.
       operationId: unassignTaskUser
+      security:
+        - sessionCookie: []
+          csrfToken: []
       responses:
         '204':
           description: Associação removida; remoção repetida não altera o estado.
@@ -472,6 +524,7 @@ paths:
     get:
       tags: [Comentários]
       summary: Listar comentários da tarefa
+      description: Apenas membros da equipa do projeto podem consultar comentários.
       operationId: listTaskComments
       responses:
         '200':
@@ -491,8 +544,13 @@ paths:
     post:
       tags: [Comentários]
       summary: Adicionar comentário à tarefa
-      description: Autor e data são definidos pelo sistema.
+      description: |
+        Membros da equipa do projeto podem comentar. O autor e a data são
+        definidos pelo sistema a partir da sessão e do servidor.
       operationId: createTaskComment
+      security:
+        - sessionCookie: []
+          csrfToken: []
       requestBody:
         required: true
         content:
@@ -524,27 +582,32 @@ components:
       in: cookie
       name: matriz_session
       description: |
-        Proposta pendente de validação. Cookie de sessão HTTP-only; nunca
-        definir manualmente pelo cliente. Configuração Secure/SameSite a
-        confirmar antes da disponibilização.
+        Cookie de sessão opaca HTTP-only, válida por oito horas. O servidor
+        guarda apenas SHA-256 do token. A cookie usa Path=/api/v1,
+        SameSite=Lax e Secure em produção; o cliente não a deve definir.
+    csrfToken:
+      type: apiKey
+      in: header
+      name: X-CSRF-Token
+      description: Token CSRF devolvido por /auth/login e /auth/me.
 
   parameters:
     ProjectId:
       name: projectId
       in: path
       required: true
-      description: Identificador positivo do projeto.
+      description: Identificador CUID do projeto.
       schema:
-        type: integer
-        minimum: 1
+        type: string
+        minLength: 1
     TaskId:
       name: taskId
       in: path
       required: true
-      description: Identificador positivo da tarefa.
+      description: Identificador CUID da tarefa.
       schema:
-        type: integer
-        minimum: 1
+        type: string
+        minLength: 1
 
   schemas:
     LoginRequest:
@@ -558,6 +621,21 @@ components:
         password:
           type: string
           minLength: 1
+          maxLength: 1024
+
+    AuthenticatedSession:
+      type: object
+      additionalProperties: false
+      required: [user, csrfToken, expiresAt]
+      properties:
+        user:
+          $ref: '#/components/schemas/User'
+        csrfToken:
+          type: string
+          description: Token opaco necessário nos pedidos autenticados de escrita.
+        expiresAt:
+          type: string
+          format: date-time
 
     User:
       type: object
@@ -565,8 +643,8 @@ components:
       required: [id, name, email]
       properties:
         id:
-          type: integer
-          minimum: 1
+          type: string
+          minLength: 1
         name:
           type: string
         email:
@@ -579,26 +657,33 @@ components:
       required: [id, name]
       properties:
         id:
-          type: integer
-          minimum: 1
+          type: string
+          minLength: 1
         name:
           type: string
 
     Project:
       type: object
       additionalProperties: false
-      required: [id, teamId, name]
+      required: [id, teamId, ownerId, name]
       properties:
         id:
-          type: integer
-          minimum: 1
+          type: string
+          minLength: 1
         teamId:
-          type: integer
-          minimum: 1
+          type: string
+          minLength: 1
+        ownerId:
+          type: [string, 'null']
+          description: Proprietário inferido da sessão na criação; null em projetos legados.
         name:
           type: string
+          minLength: 3
+          maxLength: 100
+          description: Obrigatório, não pode conter apenas espaços e é aparado antes de guardar.
         description:
           type: [string, 'null']
+          maxLength: 1000
 
     ProjectInput:
       type: object
@@ -606,13 +691,16 @@ components:
       required: [teamId, name]
       properties:
         teamId:
-          type: integer
-          minimum: 1
-        name:
           type: string
           minLength: 1
+        name:
+          type: string
+          minLength: 3
+          maxLength: 100
+          description: Se indicado, não pode conter apenas espaços e é aparado antes de guardar.
         description:
           type: [string, 'null']
+          maxLength: 1000
 
     ProjectUpdate:
       type: object
@@ -621,9 +709,11 @@ components:
       properties:
         name:
           type: string
-          minLength: 1
+          minLength: 3
+          maxLength: 100
         description:
           type: [string, 'null']
+          maxLength: 1000
 
     TaskStatus:
       type: string
@@ -639,15 +729,18 @@ components:
       required: [id, projectId, title, status, priority]
       properties:
         id:
-          type: integer
-          minimum: 1
+          type: string
+          minLength: 1
         projectId:
-          type: integer
-          minimum: 1
+          type: string
+          minLength: 1
         title:
           type: string
+          minLength: 3
+          maxLength: 150
         description:
           type: [string, 'null']
+          maxLength: 2000
         status:
           $ref: '#/components/schemas/TaskStatus'
         priority:
@@ -656,17 +749,22 @@ components:
     TaskInput:
       type: object
       additionalProperties: false
-      required: [title, status, priority]
+      required: [title]
       properties:
         title:
           type: string
-          minLength: 1
+          minLength: 3
+          maxLength: 150
+          description: Obrigatório e não pode conter apenas espaços; é aparado antes de guardar.
         description:
           type: [string, 'null']
+          maxLength: 2000
         status:
           $ref: '#/components/schemas/TaskStatus'
+          default: TODO
         priority:
           $ref: '#/components/schemas/TaskPriority'
+          default: MEDIUM
 
     TaskUpdate:
       type: object
@@ -675,9 +773,12 @@ components:
       properties:
         title:
           type: string
-          minLength: 1
+          minLength: 3
+          maxLength: 150
+          description: Se indicado, não pode conter apenas espaços e é aparado antes de guardar.
         description:
           type: [string, 'null']
+          maxLength: 2000
         status:
           $ref: '#/components/schemas/TaskStatus'
         priority:
@@ -734,11 +835,11 @@ components:
       required: [id, taskId, author, content, createdAt]
       properties:
         id:
-          type: integer
-          minimum: 1
+          type: string
+          minLength: 1
         taskId:
-          type: integer
-          minimum: 1
+          type: string
+          minLength: 1
         author:
           $ref: '#/components/schemas/User'
         content:

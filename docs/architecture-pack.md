@@ -2,7 +2,7 @@
 
 ## 1. Objetivo e estado
 
-Este pack consolida arquitetura, dados, API e interface para a Ficha 03. As decisões funcionais explicitamente fornecidas foram registadas; as regras de autorização e algumas políticas de dados continuam bloqueadas à espera do formador. O plano executável está em [implementation-plan.md](./implementation-plan.md). A implementação ainda não começou.
+Este pack consolida arquitetura, dados, API e interface para a Ficha 03. As regras de autorização de negócio estão aprovadas e aplicadas na API; algumas políticas de dados e a interface de domínio continuam por concluir. O plano executável está em [implementation-plan.md](./implementation-plan.md). O scaffold, persistência, autenticação e endpoints protegidos estão implementados.
 
 ## 2. Arquitetura e stack
 
@@ -17,15 +17,15 @@ Esta stack suporta desenvolvimento local de ponta a ponta sem microservices ou s
 
 ## 3. Modelo de dados
 
-[database.md](./database.md) modela `USER`, `TEAM`, `TEAM_MEMBERSHIP`, `PROJECT`, `TASK`, `TASK_ASSIGNMENT` e `COMMENT`. Cada projeto pertence a uma equipa. Estados e prioridades estão limitados aos valores aprovados. As contagens de tarefas do painel são dados derivados, não persistidos.
+[database.md](./database.md) modela `USER`, `TEAM`, `TEAM_MEMBERSHIP`, `PROJECT`, `TASK`, `TASK_ASSIGNMENT`, `COMMENT` e `SESSION`. Cada projeto pertence a uma equipa. Estados e prioridades estão limitados aos valores aprovados. As contagens de tarefas do painel são dados derivados, não persistidos.
 
-A elegibilidade de responsáveis, pertença de utilizadores a várias equipas, autorização e política de eliminação continuam pendentes.
+A elegibilidade de responsáveis e a autorização seguem a política aprovada: membros da equipa podem consultar e gerir os recursos do projeto; apenas o proprietário pode editar/eliminar o projeto; responsáveis são membros da equipa. A pertença a múltiplas equipas, transferência de projetos e política de eliminação continuam pendentes.
 
 ## 4. API
 
 [openapi.yaml](../openapi.yaml) documenta autenticação, equipas selecionáveis, projetos CRUD/pesquisa, tarefas CRUD/filtros, responsáveis elegíveis e atribuídos, comentários e painel. Inclui contratos de erro e respostas de autenticação/autorização.
 
-O cookie de sessão HTTP-only é uma proposta ainda por confirmar. A ausência de matriz de permissões significa que os endpoints protegidos não podem ser implementados com papéis presumidos.
+A sessão opaca persistida no SQLite, a cookie HTTP-only de oito horas e o token CSRF sincronizador estão implementados. A API valida a pertença à equipa em pedidos de projetos, tarefas, comentários e atribuições; o proprietário é inferido da sessão na criação do projeto.
 
 ## 5. Interface
 
@@ -41,11 +41,9 @@ O acompanhamento do painel é concretizado por contagens por estado; não se pre
 
 Validar com o formador e atualizar os artefactos relacionados:
 
-1. Permissões por papel para projetos, tarefas, comentários e atribuições.
-2. Critério de elegibilidade para responsáveis.
-3. Possibilidade de um utilizador pertencer a várias equipas.
-4. Protocolo de sessão e requisitos de proteção associados.
-5. Se o painel agrupa contagens por projeto ou apresenta totais globais.
-6. Política de eliminação de projetos/tarefas com dados dependentes.
+1. Possibilidade de um utilizador pertencer a várias equipas.
+2. Se um projeto pode ser transferido para outra equipa.
+3. Se o painel agrupa contagens por projeto ou apresenta totais globais.
+4. Política de eliminação de projetos/tarefas com dados dependentes.
 
 Estas pendências estão refletidas no plano e não devem ser resolvidas por suposições do agente.

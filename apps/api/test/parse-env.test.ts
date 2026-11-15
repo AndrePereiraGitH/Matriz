@@ -11,6 +11,7 @@ describe('parseEnvironment', () => {
     ).toEqual({
       databaseUrl: 'file:./dev.db',
       port: 3100,
+      webOrigin: 'http://localhost:5173',
     })
   })
 
@@ -41,5 +42,23 @@ describe('parseEnvironment', () => {
         PORT: '70000',
       }),
     ).toThrow('PORT must be an integer between 1 and 65535')
+  })
+
+  it('requires a valid web origin', () => {
+    expect(() =>
+      parseEnvironment({
+        DATABASE_URL: 'file:./dev.db',
+        WEB_ORIGIN: 'https://example.test/path',
+      }),
+    ).toThrow('WEB_ORIGIN must be a valid HTTP(S) origin')
+  })
+
+  it('requires an explicit web origin in production', () => {
+    expect(() =>
+      parseEnvironment({
+        DATABASE_URL: 'file:./dev.db',
+        NODE_ENV: 'production',
+      }),
+    ).toThrow('WEB_ORIGIN must be explicitly configured in production')
   })
 })
