@@ -14,39 +14,52 @@ O objetivo é transformar esta necessidade numa especificação clara, consisten
 
 ## 2. Âmbito do sistema
 
-O âmbito inicial da Matriz centra-se em três áreas:
+O âmbito da Ficha 03 consolida o MVP inicial com as funcionalidades necessárias à implementação académica:
 
-1. Organização de projetos por equipas de trabalho.
-2. Gestão das tarefas associadas aos projetos.
-3. Acompanhamento do progresso do trabalho.
+1. Autenticação: iniciar e terminar sessão e consultar o utilizador autenticado.
+2. Projetos: criar, listar, consultar, editar e eliminar projetos a que o utilizador tenha acesso; pesquisar pelo nome.
+3. Tarefas: criar, consultar, editar e eliminar tarefas de um projeto; definir estado e prioridade; filtrar por ambos.
+4. Responsáveis: associar vários utilizadores elegíveis a uma tarefa e remover atribuições.
+5. Comentários: adicionar e listar comentários de uma tarefa, identificando autor e data.
+6. Painel inicial: apresentar projetos acessíveis, contagens de tarefas por estado e navegação para o detalhe.
 
-A forma concreta como estas funcionalidades serão implementadas ainda não está definida.
+Esta expansão concretiza capacidades do MVP original, mas não confirma automaticamente as regras de autorização. A matriz de permissões e a regra de elegibilidade dos responsáveis continuam pendentes de validação com o formador.
 
 ## 3. Requisitos funcionais
 
-Os requisitos seguintes representam necessidades identificadas a partir do enquadramento do cliente. Os detalhes que não foram fornecidos pelo cliente estão identificados como questões em aberto.
+Os requisitos seguintes consolidam o enquadramento inicial do cliente com o âmbito funcional fornecido para a Ficha 03. As regras não especificadas continuam identificadas como questões em aberto.
 
 | ID | Requisito | Prioridade |
 |---|---|---|
 | RF01 | O sistema deve permitir organizar o trabalho em projetos. | P0 |
 | RF02 | O sistema deve permitir associar projetos a equipas de trabalho. | P0 |
-| RF03 | O sistema deve permitir gerir tarefas associadas aos projetos. | P0 |
+| RF03 | O sistema deve permitir criar, consultar, editar e eliminar tarefas associadas a projetos. | P0 |
 | RF04 | O sistema deve permitir consultar a informação das tarefas. | P0 |
-| RF05 | O sistema deve permitir acompanhar o progresso dos projetos e das tarefas. | P0 |
+| RF05 | O sistema deve permitir acompanhar o trabalho através do estado das tarefas e apresentar contagens de tarefas por estado no painel. | P0 |
+| RF06 | O sistema deve permitir iniciar e terminar sessão e consultar o utilizador autenticado. | P0 |
+| RF07 | O sistema deve permitir criar, listar, consultar, editar e eliminar projetos acessíveis ao utilizador. | P0 |
+| RF08 | Cada tarefa deve ter um estado (`TODO`, `IN_PROGRESS`, `DONE`) e uma prioridade (`LOW`, `MEDIUM`, `HIGH`). | P0 |
+| RF09 | O sistema deve permitir associar vários utilizadores elegíveis a uma tarefa e remover essas associações. | P0 |
+| RF10 | O sistema deve permitir adicionar e listar comentários de uma tarefa, incluindo autor e data. | P0 |
+| RF11 | O sistema deve permitir pesquisar projetos pelo nome e filtrar tarefas por estado e prioridade. | P0 |
+| RF12 | O painel inicial deve apresentar projetos acessíveis, contagens de tarefas por estado e permitir navegar para o detalhe de um projeto. | P0 |
 
-### 3.1. Detalhes por esclarecer
+Os valores de estado e prioridade acima foram aprovados para o planeamento da Ficha 03. As regras de transição entre estados ainda não estão definidas.
 
-Os seguintes comportamentos precisam de ser discutidos e validados antes de serem definidos como requisitos:
+### 3.1. Regras e detalhes por esclarecer
 
-- Criação, edição e eliminação de projetos;
-- Criação, edição e eliminação de tarefas;
-- Atribuição de tarefas a membros da equipa;
-- Estados possíveis para as tarefas;
-- Definição de prioridades e prazos;
-- Organização das tarefas através de listas, quadros ou outras visualizações;
-- Registo do progresso através de estados, percentagens ou outro mecanismo;
-- Existência de comentários ou histórico de alterações;
-- Diferentes níveis de permissões para os utilizadores.
+Os seguintes comportamentos precisam de ser discutidos e validados antes de orientar a implementação:
+
+- Que papéis podem criar, editar ou eliminar projetos?
+- A edição de um projeto pode transferi-lo para outra equipa?
+- Quem pode consultar ou alterar tarefas, comentar ou gerir atribuições?
+- Que utilizadores são elegíveis para atribuição a uma tarefa?
+- Um utilizador pode pertencer a várias equipas?
+- As contagens de tarefas por estado são globais no painel ou agrupadas por projeto?
+- As transições entre estados de tarefa são livres ou sujeitas a regras?
+- O progresso do projeto é representado apenas por contagens por estado ou requer outro indicador?
+- O que acontece às tarefas, atribuições e comentários quando um projeto ou tarefa é eliminado?
+- Que regras de validação e limites de texto devem aplicar-se aos campos?
 
 ## 4. Requisitos não funcionais
 
@@ -69,51 +82,28 @@ Estas dimensões são pontos de análise, não requisitos técnicos já aprovado
 
 ## 5. Priorização
 
-A prioridade P0 identifica as capacidades fundamentais para responder à necessidade inicial do cliente:
+As capacidades RF01–RF12 são P0 para o âmbito de implementação da Ficha 03:
 
-- Organização de projetos;
-- Associação de projetos a equipas;
-- Gestão de tarefas;
-- Consulta de tarefas;
-- Acompanhamento do progresso.
+- Autenticação básica para contas de demonstração;
+- Ciclo de vida e pesquisa de projetos;
+- Ciclo de vida e filtros de tarefas;
+- Atribuições e comentários;
+- Painel inicial com contagens por estado.
 
-A prioridade e o âmbito das restantes funcionalidades deverão ser definidos após clarificação dos requisitos.
+## 6. Fora do âmbito e extensões opcionais
 
-## 6. Fora do âmbito confirmado
+O registo público e a recuperação de palavra-passe são extensões opcionais e não fazem parte do MVP desta ficha. Também não estão confirmadas aplicações móveis, integrações externas, notificações automáticas, relatórios avançados, faturação, funcionalidades de inteligência artificial ou automatização de fluxos de trabalho.
 
-Não existem funcionalidades adicionais confirmadas pelo cliente nesta fase.
+## 7. Questões por validar antes da implementação
 
-Por isso, não se deve assumir como parte do âmbito:
-
-- Aplicações móveis nativas;
-- Integrações com ferramentas externas;
-- Notificações automáticas;
-- Relatórios avançados;
-- Gestão de faturação;
-- Funcionalidades de inteligência artificial;
-- Automatização de fluxos de trabalho.
-
-Estas funcionalidades poderão ser avaliadas futuramente, caso exista uma necessidade identificada.
-
-## 7. Questões em aberto
-
-Antes de avançar para o desenho detalhado da solução, será necessário esclarecer:
-
-1. Como são criadas e geridas as equipas?
-2. Um utilizador pode pertencer a várias equipas?
-3. Como são criados e geridos os projetos?
-4. Um projeto pode pertencer a mais do que uma equipa?
-5. Como são criadas e atribuídas as tarefas?
-6. Que estados e prioridades podem ter as tarefas?
-7. Como deve ser representado o progresso de um projeto?
-8. Que permissões existem para os diferentes utilizadores?
-9. É necessário manter um histórico de alterações?
-10. Que requisitos de segurança, desempenho e disponibilidade são esperados?
+1. Qual é a matriz exata de permissões por papel para projetos, tarefas, comentários e atribuições?
+2. Como se define um utilizador elegível para ser responsável por uma tarefa?
+3. Que política de eliminação se aplica a projetos e tarefas com dados dependentes?
+4. É necessária uma representação do progresso do projeto além das contagens por estado no painel?
+5. Que requisitos de segurança, desempenho, disponibilidade e retenção de dados devem ser aplicados?
 
 ## 8. Estado da especificação
 
-Este documento representa uma primeira versão da especificação, baseada exclusivamente no enquadramento inicial fornecido pelo cliente.
+Este documento consolida o âmbito inicial com a Ficha 03. O âmbito funcional indicado na secção 3 foi fornecido para esta ficha; a autorização detalhada, a elegibilidade de responsáveis e as regras de eliminação permanecem pendentes.
 
-Os requisitos funcionais apresentados identificam as capacidades principais da aplicação. Os detalhes ainda não confirmados permanecem como questões em aberto.
-
-A especificação deverá ser atualizada à medida que forem obtidas respostas e validadas decisões.
+O contrato, o modelo de dados e o plano de implementação devem ser mantidos alinhados com estas distinções entre âmbito confirmado e regras por validar.

@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1440" height="1190" viewBox="0 0 1440 1190" role="img" aria-labelledby="title description">
   <title id="title">Wireframe de baixa fidelidade — Projetos e tarefas da equipa Matriz</title>
-  <desc id="description">Ecrã de consulta de projetos associados a uma equipa, com tarefas do projeto selecionado, indicação de que a representação do progresso ainda está por definir e variantes dos estados loading, vazio e erro.</desc>
+  <desc id="description">Painel inicial de baixa fidelidade com projetos acessíveis, pesquisa, contagens simuladas por estado, filtros de tarefas e variantes de carregamento, vazio e erro.</desc>
   <style>
     text { font-family: Arial, Helvetica, sans-serif; fill: #202124; }
     .muted { fill: #5f6368; }
@@ -27,7 +27,7 @@
   <rect x="76" y="66" width="34" height="32" rx="5" class="soft"/>
   <path d="M84 76h18M84 82h18M84 88h12" stroke="#5f6368" stroke-width="2"/>
   <text x="122" y="89" class="subheading">Matriz</text>
-  <text x="1112" y="87" class="small muted">Protótipo estático · sem interação</text>
+  <text x="1112" y="87" class="small muted">Utilizador autenticado · Sair</text>
 
   <rect x="52" y="116" width="224" height="714" fill="#f1f3f4"/>
   <line x1="276" y1="116" x2="276" y2="830" class="line"/>
@@ -45,16 +45,16 @@
   <text x="78" y="430" class="small muted">a equipas, contas e</text>
   <text x="78" y="450" class="small muted">permissões por definir.</text>
 
-  <text x="310" y="150" class="small muted">Projetos / Equipa de exemplo</text>
-  <text x="310" y="191" class="heading">Projetos da equipa</text>
-  <text x="310" y="219" class="body muted">Consulte projetos e as tarefas do projeto selecionado.</text>
+  <text x="310" y="150" class="small muted">Painel inicial</text>
+  <text x="310" y="191" class="heading">Projetos acessíveis</text>
+  <text x="310" y="219" class="body muted">Consulte o trabalho e abra um projeto para ver os detalhes.</text>
 
   <text x="1032" y="151" class="label muted">EQUIPA · CONTEXTO ILUSTRATIVO</text>
   <rect x="1032" y="162" width="320" height="46" rx="5" class="soft"/>
   <text x="1050" y="191" class="body">Equipa de exemplo</text>
 
   <text x="310" y="267" class="subheading">Projetos</text>
-  <text x="310" y="290" class="small muted">Exemplos simulados</text>
+  <text x="310" y="290" class="small muted">Pesquisar pelo nome: [________________]</text>
 
   <rect x="310" y="306" width="398" height="112" rx="6" class="accent"/>
   <text x="330" y="337" class="subheading">Plataforma Matriz</text>
@@ -78,11 +78,16 @@
   <text x="766" y="339" class="body muted">Organização do trabalho da equipa.</text>
 
   <rect x="766" y="361" width="558" height="76" rx="5" class="soft"/>
-  <text x="784" y="388" class="label">Progresso do projeto</text>
-  <text x="784" y="415" class="small muted">Representação / cálculo pendente de validação.</text>
+  <text x="784" y="383" class="label">Tarefas por estado · contagens simuladas</text>
+  <rect x="784" y="393" width="166" height="32" rx="4" fill="#ffffff" stroke="#9aa0a6"/>
+  <text x="797" y="414" class="small">A fazer: 03</text>
+  <rect x="961" y="393" width="166" height="32" rx="4" fill="#ffffff" stroke="#9aa0a6"/>
+  <text x="974" y="414" class="small">Em curso: 02</text>
+  <rect x="1138" y="393" width="168" height="32" rx="4" fill="#ffffff" stroke="#9aa0a6"/>
+  <text x="1151" y="414" class="small">Concluídas: 01</text>
 
   <text x="766" y="476" class="subheading">Tarefas</text>
-  <text x="766" y="499" class="small muted">Exemplos simulados · estados não apresentados</text>
+  <text x="766" y="499" class="small muted">Estado: Todos ▾    Prioridade: Todas ▾</text>
 
   <rect x="766" y="515" width="558" height="51" rx="4" fill="#ffffff" stroke="#dadce0"/>
   <text x="784" y="538" class="body">Clarificar requisitos do MVP</text>

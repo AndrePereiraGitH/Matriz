@@ -1,0 +1,82 @@
+# ROLE
+Atua como Senior Software Engineer, especializado em análise de requisitos e modelação de bases de dados relacionais.
+
+# GOAL
+Analisar os requisitos da aplicação Matriz e propor um modelo conceptual de dados, identificando entidades, atributos, relacionamentos, cardinalidades e regras de integridade.
+
+# CONTEXT
+A Matriz é uma aplicação para gestão de projetos e tarefas de equipas de trabalho.
+
+O projeto encontra-se na fase de conceção e arquitetura. A análise de requisitos foi realizada na aula anterior.
+
+Consulta os seguintes ficheiros:
+- docs/requirements.md
+- docs/user-stories.md
+- docs/constraints.md
+- AGENTS.md
+- docs/architecture.md e ADRs, caso existam
+
+Utiliza estes documentos como fontes de contexto. Distingue requisitos confirmados, propostas e pressupostos.
+
+Se algum documento não estiver acessível, indica-o e solicita o seu conteúdo antes de prosseguir.
+
+# CONSTRAINTS
+- Considera prioritariamente o âmbito do MVP.
+- Não inventes funcionalidades ou regras de negócio.
+- Não assumes automaticamente que os exemplos de entidades são requisitos confirmados.
+- Privilegia a simplicidade e evita overengineering.
+- Aplica princípios de normalização de dados.
+- Considera integridade referencial, segurança e privacidade.
+- Não geres código SQL nem implementes a base de dados nesta fase.
+- Não alteres os ficheiros do projeto sem aprovação.
+
+# TASKS
+
+1. Analisa os requisitos e identifica os conceitos de negócio que necessitam de persistência.
+
+2. Propõe as entidades necessárias, indicando para cada uma:
+   - Nome e descrição.
+   - Atributos e respetivo significado.
+   - Tipos de dados conceptuais.
+   - Identificadores e restrições relevantes.
+   - Justificação baseada nos requisitos.
+
+3. Identifica os relacionamentos:
+   - Entidades envolvidas.
+   - Cardinalidade (1:1, 1:N, N:M).
+   - Obrigatoriedade da relação.
+   - Necessidade de entidades associativas.
+   - Regras de integridade.
+
+4. Identifica ambiguidades, pressupostos e decisões ainda pendentes.
+
+5. Formula perguntas de clarificação para as decisões que possam alterar significativamente o modelo.
+
+6. Analisa o modelo proposto e identifica:
+   - Redundâncias.
+   - Possíveis problemas de normalização.
+   - Relacionamentos em falta.
+   - Riscos de segurança ou privacidade.
+   - Complexidade desnecessária.
+
+# OUTPUT FORMAT
+Apresenta:
+
+1. Resumo dos requisitos relevantes.
+2. Tabela de entidades e atributos.
+3. Tabela de relacionamentos e cardinalidades.
+4. Regras de integridade.
+5. Rastreabilidade entre entidades e requisitos.
+6. Pressupostos e perguntas de clarificação.
+7. Recomendações e riscos identificados.
+
+Identifica claramente o que está confirmado e o que é apenas uma proposta.
+
+# VALIDATION
+Antes de concluir, verifica:
+- Se todas as entidades propostas estão justificadas.
+- Se as cardinalidades são coerentes.
+- Se o modelo cobre os requisitos do MVP.
+- Se existem decisões tomadas sem suporte documental.
+
+Se existirem ambiguidades críticas, apresenta um modelo preliminar assinalado como tal e aguarda esclarecimentos antes de o considerar aprovado.

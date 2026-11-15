@@ -1,159 +1,807 @@
 openapi: 3.1.0
 info:
   title: Matriz API
-  version: 0.1.0
-  summary: Contrato preliminar de consulta de projetos e tarefas
+  version: 0.2.0
+  summary: Contrato REST para o MVP da Ficha 03
   description: |
-    Especificação simplificada para duas operações de consulta do MVP,
-    alinhadas com US01 e US03. Este contrato não representa uma API
-    implementada nem aprova decisões de autenticação ou autorização, que
-    permanecem por definir. A ausência de um requisito de segurança nesta
-    especificação não significa que os recursos sejam públicos. Os
-    identificadores inteiros positivos são uma representação proposta ao
-    nível do contrato HTTP e não definem os tipos físicos de persistência.
+    Contrato para autenticação, projetos, tarefas, responsáveis, comentários
+    e painel inicial. As operações protegidas requerem um utilizador
+    autenticado. A matriz de autorização por papel e a elegibilidade de
+    responsáveis ainda aguardam validação com o formador.
+
+    A autenticação por cookie de sessão HTTP-only é uma proposta de contrato
+    para a aplicação web e deve ser confirmada antes da implementação.
+    Registo público e recuperação de palavra-passe não fazem parte do MVP.
 servers:
-  - url: https://api.example.com
-    description: URL ilustrativo; não corresponde a um serviço ativo.
+  - url: http://localhost:3000/api/v1
+    description: Endereço local ilustrativo para desenvolvimento.
 tags:
+  - name: Autenticação
+  - name: Equipas
   - name: Projetos
   - name: Tarefas
+  - name: Responsáveis
+  - name: Comentários
+  - name: Painel
+
+security:
+  - sessionCookie: []
 
 paths:
-  /teams/{teamId}/projects:
-    get:
-      tags:
-        - Projetos
-      summary: Listar projetos associados a uma equipa
-      description: Corresponde à consulta de projetos da equipa (US01).
-      operationId: listTeamProjects
-      parameters:
-        - name: teamId
-          in: path
-          required: true
-          description: Identificador da equipa.
-          schema:
-            type: integer
-            minimum: 1
+  /auth/login:
+    post:
+      tags: [Autenticação]
+      summary: Iniciar sessão
+      description: Credenciais de demonstração são criadas por seed.
+      operationId: login
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
       responses:
         '200':
-          description: Lista de projetos da equipa; pode estar vazia.
+          description: Sessão iniciada; a resposta inclui o utilizador autenticado.
+          headers:
+            Set-Cookie:
+              description: |
+                Cookie de sessão HTTP-only (contrato proposto). Em produção
+                deve usar Secure e uma política SameSite adequada.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /auth/logout:
+    post:
+      tags: [Autenticação]
+      summary: Terminar sessão
+      operationId: logout
+      responses:
+        '204':
+          description: Sessão terminada e cookie invalidado.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /auth/me:
+    get:
+      tags: [Autenticação]
+      summary: Consultar o utilizador autenticado
+      operationId: getCurrentUser
+      responses:
+        '200':
+          description: Perfil público do utilizador autenticado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /teams:
+    get:
+      tags: [Equipas]
+      summary: Listar equipas disponíveis ao utilizador
+      description: |
+        Usado para escolher a equipa ao criar um projeto. Os critérios de
+        disponibilidade dependem da política de acesso ainda por validar.
+      operationId: listTeams
+      responses:
+        '200':
+          description: Equipas que o utilizador pode selecionar.
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/ProjectSummary'
+                  $ref: '#/components/schemas/Team'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /dashboard:
+    get:
+      tags: [Painel]
+      summary: Consultar projetos acessíveis e contagens de tarefas
+      description: |
+        As contagens são agregadas por estado a partir das tarefas de cada
+        projeto nesta proposta de contrato. A resposta inclui zero para
+        estados sem tarefas. Confirmar se o painel deve agregar por projeto
+        ou apresentar contagens globais antes da implementação.
+      operationId: getDashboard
+      responses:
+        '200':
+          description: Resumo do painel inicial.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DashboardProject'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /projects:
+    get:
+      tags: [Projetos]
+      summary: Listar projetos acessíveis
+      operationId: listProjects
+      parameters:
+        - name: search
+          in: query
+          required: false
+          description: Pesquisa por correspondência no nome do projeto.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Projetos acessíveis ao utilizador, possivelmente lista vazia.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Project'
         '400':
           $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      tags: [Projetos]
+      summary: Criar projeto
+      operationId: createProject
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectInput'
+      responses:
+        '201':
+          description: Projeto criado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /projects/{projectId}:
+    parameters:
+      - $ref: '#/components/parameters/ProjectId'
+    get:
+      tags: [Projetos]
+      summary: Consultar projeto
+      operationId: getProject
+      responses:
+        '200':
+          description: Projeto encontrado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      tags: [Projetos]
+      summary: Editar projeto
+      operationId: updateProject
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectUpdate'
+      responses:
+        '200':
+          description: Projeto atualizado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    delete:
+      tags: [Projetos]
+      summary: Eliminar projeto
+      description: |
+        Política de eliminação de tarefas dependentes ainda aguarda decisão.
+        A implementação deve aplicar a política aprovada, sem assumir cascata.
+      operationId: deleteProject
+      responses:
+        '204':
+          description: Projeto eliminado.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
 
   /projects/{projectId}/tasks:
+    parameters:
+      - $ref: '#/components/parameters/ProjectId'
     get:
-      tags:
-        - Tarefas
-      summary: Listar tarefas associadas a um projeto
-      description: Corresponde à consulta de tarefas de um projeto (US03).
+      tags: [Tarefas]
+      summary: Listar e filtrar tarefas do projeto
       operationId: listProjectTasks
       parameters:
-        - name: projectId
-          in: path
-          required: true
-          description: Identificador do projeto.
+        - name: status
+          in: query
+          required: false
           schema:
-            type: integer
-            minimum: 1
+            $ref: '#/components/schemas/TaskStatus'
+        - name: priority
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/TaskPriority'
       responses:
         '200':
-          description: Lista de tarefas do projeto; pode estar vazia.
+          description: Tarefas do projeto, possivelmente lista vazia.
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/TaskSummary'
+                  $ref: '#/components/schemas/Task'
         '400':
           $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    post:
+      tags: [Tarefas]
+      summary: Criar tarefa no projeto
+      operationId: createTask
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskInput'
+      responses:
+        '201':
+          description: Tarefa criada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /tasks/{taskId}:
+    parameters:
+      - $ref: '#/components/parameters/TaskId'
+    get:
+      tags: [Tarefas]
+      summary: Consultar tarefa
+      operationId: getTask
+      responses:
+        '200':
+          description: Tarefa encontrada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      tags: [Tarefas]
+      summary: Editar tarefa
+      operationId: updateTask
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskUpdate'
+      responses:
+        '200':
+          description: Tarefa atualizada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    delete:
+      tags: [Tarefas]
+      summary: Eliminar tarefa
+      description: A política para atribuições e comentários dependentes aguarda decisão.
+      operationId: deleteTask
+      responses:
+        '204':
+          description: Tarefa eliminada.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /tasks/{taskId}/eligible-assignees:
+    parameters:
+      - $ref: '#/components/parameters/TaskId'
+    get:
+      tags: [Responsáveis]
+      summary: Listar utilizadores elegíveis para a tarefa
+      description: A regra de elegibilidade aguarda validação do formador.
+      operationId: listEligibleAssignees
+      responses:
+        '200':
+          description: Utilizadores elegíveis segundo a política aprovada.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
 
+  /tasks/{taskId}/assignees:
+    parameters:
+      - $ref: '#/components/parameters/TaskId'
+    get:
+      tags: [Responsáveis]
+      summary: Listar responsáveis de uma tarefa
+      operationId: listTaskAssignees
+      responses:
+        '200':
+          description: Responsáveis atualmente associados à tarefa.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TaskAssignment'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /tasks/{taskId}/assignees/{userId}:
+    parameters:
+      - $ref: '#/components/parameters/TaskId'
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+    put:
+      tags: [Responsáveis]
+      summary: Associar responsável à tarefa
+      description: A operação é idempotente; elegibilidade e autorização aguardam validação.
+      operationId: assignTaskUser
+      responses:
+        '204':
+          description: Responsável associado ou associação já existente.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    delete:
+      tags: [Responsáveis]
+      summary: Remover responsável da tarefa
+      operationId: unassignTaskUser
+      responses:
+        '204':
+          description: Associação removida; remoção repetida não altera o estado.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /tasks/{taskId}/comments:
+    parameters:
+      - $ref: '#/components/parameters/TaskId'
+    get:
+      tags: [Comentários]
+      summary: Listar comentários da tarefa
+      operationId: listTaskComments
+      responses:
+        '200':
+          description: Comentários com autor e data de criação.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Comment'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    post:
+      tags: [Comentários]
+      summary: Adicionar comentário à tarefa
+      description: Autor e data são definidos pelo sistema.
+      operationId: createTaskComment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommentInput'
+      responses:
+        '201':
+          description: Comentário criado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comment'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
 components:
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: matriz_session
+      description: |
+        Proposta pendente de validação. Cookie de sessão HTTP-only; nunca
+        definir manualmente pelo cliente. Configuração Secure/SameSite a
+        confirmar antes da disponibilização.
+
+  parameters:
+    ProjectId:
+      name: projectId
+      in: path
+      required: true
+      description: Identificador positivo do projeto.
+      schema:
+        type: integer
+        minimum: 1
+    TaskId:
+      name: taskId
+      in: path
+      required: true
+      description: Identificador positivo da tarefa.
+      schema:
+        type: integer
+        minimum: 1
+
   schemas:
-    ProjectSummary:
+    LoginRequest:
       type: object
       additionalProperties: false
-      required:
-        - id
-        - name
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 1
+
+    User:
+      type: object
+      additionalProperties: false
+      required: [id, name, email]
       properties:
         id:
           type: integer
           minimum: 1
-          description: Identificador do projeto.
         name:
           type: string
-          description: Nome do projeto.
-        description:
-          type:
-            - string
-            - 'null'
-          description: Descrição, se definida.
+        email:
+          type: string
+          format: email
 
-    TaskSummary:
+    Team:
       type: object
       additionalProperties: false
-      required:
-        - id
-        - projectId
-        - title
+      required: [id, name]
       properties:
         id:
           type: integer
           minimum: 1
-          description: Identificador da tarefa.
+        name:
+          type: string
+
+    Project:
+      type: object
+      additionalProperties: false
+      required: [id, teamId, name]
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        teamId:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+        description:
+          type: [string, 'null']
+
+    ProjectInput:
+      type: object
+      additionalProperties: false
+      required: [teamId, name]
+      properties:
+        teamId:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+          minLength: 1
+        description:
+          type: [string, 'null']
+
+    ProjectUpdate:
+      type: object
+      additionalProperties: false
+      minProperties: 1
+      properties:
+        name:
+          type: string
+          minLength: 1
+        description:
+          type: [string, 'null']
+
+    TaskStatus:
+      type: string
+      enum: [TODO, IN_PROGRESS, DONE]
+
+    TaskPriority:
+      type: string
+      enum: [LOW, MEDIUM, HIGH]
+
+    Task:
+      type: object
+      additionalProperties: false
+      required: [id, projectId, title, status, priority]
+      properties:
+        id:
+          type: integer
+          minimum: 1
         projectId:
           type: integer
           minimum: 1
-          description: Identificador do projeto a que a tarefa pertence.
         title:
           type: string
-          description: Título da tarefa.
         description:
-          type:
-            - string
-            - 'null'
-          description: Descrição, se definida.
+          type: [string, 'null']
+        status:
+          $ref: '#/components/schemas/TaskStatus'
+        priority:
+          $ref: '#/components/schemas/TaskPriority'
+
+    TaskInput:
+      type: object
+      additionalProperties: false
+      required: [title, status, priority]
+      properties:
+        title:
+          type: string
+          minLength: 1
+        description:
+          type: [string, 'null']
+        status:
+          $ref: '#/components/schemas/TaskStatus'
+        priority:
+          $ref: '#/components/schemas/TaskPriority'
+
+    TaskUpdate:
+      type: object
+      additionalProperties: false
+      minProperties: 1
+      properties:
+        title:
+          type: string
+          minLength: 1
+        description:
+          type: [string, 'null']
+        status:
+          $ref: '#/components/schemas/TaskStatus'
+        priority:
+          $ref: '#/components/schemas/TaskPriority'
+
+    TaskCountsByStatus:
+      type: object
+      additionalProperties: false
+      required: [TODO, IN_PROGRESS, DONE]
+      properties:
+        TODO:
+          type: integer
+          minimum: 0
+        IN_PROGRESS:
+          type: integer
+          minimum: 0
+        DONE:
+          type: integer
+          minimum: 0
+
+    DashboardProject:
+      type: object
+      additionalProperties: false
+      required: [project, taskCountsByStatus]
+      properties:
+        project:
+          $ref: '#/components/schemas/Project'
+        taskCountsByStatus:
+          $ref: '#/components/schemas/TaskCountsByStatus'
+
+    TaskAssignment:
+      type: object
+      additionalProperties: false
+      required: [user, assignedAt]
+      properties:
+        user:
+          $ref: '#/components/schemas/User'
+        assignedAt:
+          type: string
+          format: date-time
+
+    CommentInput:
+      type: object
+      additionalProperties: false
+      required: [content]
+      properties:
+        content:
+          type: string
+          minLength: 1
+
+    Comment:
+      type: object
+      additionalProperties: false
+      required: [id, taskId, author, content, createdAt]
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        taskId:
+          type: integer
+          minimum: 1
+        author:
+          $ref: '#/components/schemas/User'
+        content:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
 
     ApiError:
       type: object
       additionalProperties: false
-      required:
-        - code
-        - message
+      required: [code, message]
       properties:
         code:
           type: string
-          description: Código estável do erro.
         message:
           type: string
-          description: Descrição legível do erro.
+        details:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required: [field, message]
+            properties:
+              field:
+                type: string
+              message:
+                type: string
 
   responses:
     BadRequest:
-      description: Parâmetro de caminho inválido.
+      description: Pedido malformado ou parâmetro inválido.
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/ApiError'
-          example:
-            code: INVALID_PARAMETER
-            message: O identificador deve ser um inteiro positivo.
+    Unauthorized:
+      description: Sessão inexistente, inválida ou expirada.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    Forbidden:
+      description: Utilizador autenticado sem permissão segundo a política aprovada.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
     NotFound:
-      description: A equipa ou o projeto indicado não foi encontrado.
+      description: Equipa, projeto, tarefa ou utilizador inexistente.
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/ApiError'
-          example:
-            code: RESOURCE_NOT_FOUND
-            message: O recurso solicitado não foi encontrado.
+    Conflict:
+      description: Operação incompatível com dependências ou estado atual do recurso.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    ValidationError:
+      description: Pedido bem formado, mas com dados inválidos.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'

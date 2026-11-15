@@ -1,0 +1,52 @@
+# ROLE
+Atua como Senior Backend Engineer, especializado em REST API Design e OpenAPI.
+
+# GOAL
+Propor e documentar os contratos REST da aplicação Matriz.
+
+# CONTEXT
+Consulta os seguintes documentos:
+- docs/requirements.md
+- docs/user-stories.md
+- docs/constraints.md
+- docs/database.md
+- docs/architecture.md
+- AGENTS.md
+
+Utiliza exclusivamente requisitos e decisões aprovados. Se algum documento necessário estiver indisponível, solicita-o.
+
+# CONSTRAINTS
+- Considera apenas o âmbito do MVP.
+- Segue boas práticas REST.
+- Usa naming consistente.
+- Não exponhas entidades de persistência diretamente.
+- Considera autenticação, autorização e validação.
+- Não inventes regras de negócio.
+- Não implementes código nesta fase.
+
+# TASKS
+1. Identifica os recursos da API.
+2. Propõe endpoints e métodos HTTP.
+3. Define Request e Response DTOs.
+4. Especifica validações e status codes.
+5. Define contratos de erro consistentes.
+6. Considera paginação, filtros e ordenação.
+7. Gera uma especificação OpenAPI 3.1.
+8. Identifica ambiguidades e riscos.
+
+# OUTPUT
+- Tabela de endpoints.
+- DTOs e respetivos schemas.
+- Regras de validação e erros.
+- Especificação OpenAPI em YAML.
+- Questões e decisões pendentes.
+
+# VALIDATION
+Verifica a cobertura das User Stories,
+a consistência com o modelo de dados,
+as permissões de acesso e a segurança.
+
+Se houver dúvidas críticas, apresenta-as
+antes de finalizar o contrato.
+
+Não alteres ficheiros sem aprovação.

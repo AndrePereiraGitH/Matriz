@@ -1,0 +1,44 @@
+Identificação das Entidades e Relacionamentos
+
+Entidades e atributos
+
+USER — Utilizador
+- id (PK)
+- name
+- email
+
+PROJECT — Projeto
+- id (PK)
+- name
+- description
+- owner_id (FK → USER)
+
+TASK — Tarefa
+- id (PK)
+- title
+- description
+- status
+- priority
+- project_id (FK → PROJECT)
+
+COMMENT — Comentário
+- id (PK)
+- content
+- task_id (FK → TASK)
+- author_id (FK → USER)
+
+TASK_ASSIGNMENT — Atribuição de Tarefas
+- task_id (PK, FK → TASK)
+- user_id (PK, FK → USER)
+- assigned_at
+
+Relacionamentos e cardinalidades
+
+Entidades	Relação					Cardinalidade
+USER → PROJECT	Utilizador gere projetos		1:N
+PROJECT → TASK	Projeto contém tarefas			1:N
+TASK → COMMENT	Tarefa possui comentários		1:N
+USER → COMMENT	Utilizador escreve comentários		1:N
+USER ↔ TASK	Utilizador é atribuído a tarefas	N:M
+
+Nota: O relacionamento N:M entre USER e TASK é implementado através da entidade associativa TASK_ASSIGNMENT.

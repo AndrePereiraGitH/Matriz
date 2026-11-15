@@ -1,0 +1,67 @@
+# ROLE
+Atua como Database Architect, especializado em modelação de dados e documentação técnica.
+
+# GOAL
+Gerar um Entity-Relationship Diagram (ERD) em Mermaid, com base no modelo de dados previamente aprovado para a aplicação Matriz.
+
+# CONTEXT
+O modelo de dados foi analisado e validado na etapa anterior.
+
+Utiliza como referência:
+- O modelo de entidades e atributos aprovado.
+- A tabela de relacionamentos e cardinalidades.
+- As regras de integridade definidas.
+- As decisões de modelação documentadas.
+
+Consulta docs/database.md, caso contenha o modelo aprovado. Caso contrário, utiliza o modelo aprovado nesta conversa.
+
+Se não tiveres acesso ao modelo validado, solicita-o antes de gerar o diagrama.
+
+# CONSTRAINTS
+- Utiliza exclusivamente entidades e relações aprovadas.
+- Não acrescentes funcionalidades ou entidades arbitrárias.
+- Não alteres cardinalidades sem justificação e aprovação.
+- Representa chaves primárias e estrangeiras quando definidas.
+- Utiliza a sintaxe Mermaid erDiagram.
+- Mantém nomes consistentes com o modelo.
+- Evita detalhes tecnológicos não definidos.
+- Não geres SQL nem migrations.
+- Não alteres ficheiros sem aprovação.
+
+# TASKS
+
+1. Identifica todas as entidades do modelo aprovado.
+
+2. Representa os respetivos atributos, identificadores e referências.
+
+3. Representa os relacionamentos com cardinalidades e obrigatoriedade corretas.
+
+4. Identifica as entidades associativas necessárias às relações N:M.
+
+5. Gera o ERD utilizando Mermaid.
+
+6. Revê a correspondência entre o diagrama e o modelo aprovado.
+
+7. Identifica eventuais inconsistências ou decisões que ainda necessitem de validação humana.
+
+# OUTPUT FORMAT
+
+1. Diagrama ER completo em Mermaid.
+2. Tabela de relacionamentos representados.
+3. Identificação de chaves primárias e estrangeiras.
+4. Observações sobre ambiguidades ou limitações.
+
+# VALIDATION
+Verifica:
+- Todas as entidades aprovadas estão representadas.
+- Todos os relacionamentos aprovados estão representados.
+- As cardinalidades estão corretas.
+- As chaves estrangeiras são coerentes.
+- Não foram introduzidas entidades não aprovadas.
+- O código segue a sintaxe Mermaid erDiagram.
+
+Se tiveres acesso a um renderizador Mermaid, valida a renderização e corrige eventuais erros.
+
+Se não conseguires executar a validação, indica explicitamente que esta ficou pendente.
+
+Apresenta o diagrama para revisão antes de avançar para a implementação física da base de dados.

@@ -1,0 +1,38 @@
+# ROLE
+Atua como Senior UI/UX Designer e Frontend Engineer.
+
+# GOAL
+Criar um protótipo de interface para a aplicação Matriz, destinada à gestão de projetos e tarefas.
+
+# CONTEXT
+Analisa os requisitos, User Stories e restrições existentes no projeto.
+
+Considera a arquitetura, o stack tecnológico e os contratos de API, caso já estejam definidos.
+
+# CONSTRAINTS
+- Considera apenas funcionalidades do MVP.
+- Privilegia uma interface simples e intuitiva.
+- Utiliza componentes reutilizáveis.
+- Garante responsividade e acessibilidade.
+- Não inventes funcionalidades não aprovadas.
+- Não estabeleças novas dependências sem justificação.
+
+# TASKS
+1. Identifica os principais ecrãs e workflows.
+2. Propõe a estrutura de navegação.
+3. Define os componentes necessários.
+4. Cria um protótipo do dashboard.
+5. Inclui estados loading, empty e error.
+6. Utiliza dados simulados identificados como tal.
+
+# OUTPUT
+- Estrutura dos ecrãs.
+- Componentes reutilizáveis.
+- Protótipo da interface.
+- Decisões de UI/UX e respetiva justificação.
+- Pressupostos e questões pendentes.
+
+# VALIDATION
+Verifica a cobertura dos requisitos, a consistência visual, a responsividade e a acessibilidade.
+
+Não alteres ficheiros existentes sem aprovação.

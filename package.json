@@ -1,0 +1,19 @@
+{
+  "name": "matriz",
+  "private": true,
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "postinstall": "npm run db:generate --workspace=@matriz/api",
+    "dev": "concurrently -k -n api,web \"npm run dev -w @matriz/api\" \"npm run dev -w @matriz/web\"",
+    "build": "npm run build --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "vitest run --passWithNoTests",
+    "lint": "npm run lint --workspaces --if-present"
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.7",
+    "vitest": "^5.1.0"
+  }
+}

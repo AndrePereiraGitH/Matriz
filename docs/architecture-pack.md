@@ -1,81 +1,51 @@
-# Matriz — Architecture Pack do MVP (revisão crítica)
+# Matriz — Architecture Pack do MVP
 
 ## 1. Objetivo e estado
 
-Este pack resume e revê a coerência entre requisitos, arquitetura, modelo de dados, contrato API e wireframe para o MVP da Matriz. É uma síntese de propostas e lacunas; não substitui os documentos de origem nem aprova decisões de negócio ainda pendentes.
+Este pack consolida arquitetura, dados, API e interface para a Ficha 03. As decisões funcionais explicitamente fornecidas foram registadas; as regras de autorização e algumas políticas de dados continuam bloqueadas à espera do formador. O plano executável está em [implementation-plan.md](./implementation-plan.md). A implementação ainda não começou.
 
-O âmbito confirmado é organizar projetos por equipas, gerir tarefas associadas e acompanhar o progresso. A solução continua na fase de análise e especificação.
+## 2. Arquitetura e stack
 
-## 2. Proposta de arquitetura
+Foi escolhida para o plano uma aplicação em **monólito modular**:
 
-Recomenda-se um **monólito modular** para o MVP: uma aplicação e uma unidade de disponibilização, organizada internamente por responsabilidades e interfaces claras. Esta proposta evita a complexidade distribuída dos microservices e explicita limites entre as áreas do domínio.
+- TypeScript no frontend e backend;
+- React com Vite para a interface;
+- Node.js com Express para a API;
+- SQLite com Prisma para persistência.
 
-Componentes lógicos:
+Esta stack suporta desenvolvimento local de ponta a ponta sem microservices ou serviços externos. Responsabilidades lógicas: autenticação; equipas/projetos; tarefas; atribuições; comentários; painel; persistência. Ver [architecture.md](./architecture.md).
 
-| Componente | Responsabilidade no MVP |
-|---|---|
-| Interface | Apresentar projetos da equipa e tarefas do projeto selecionado. |
-| Aplicação / casos de uso | Coordenar consultas e operações funcionais que venham a ser validadas. |
-| Equipas e projetos | Representar equipas, projetos e a sua associação. |
-| Tarefas | Representar tarefas associadas a projetos e respetivos dados validados. |
-| Progresso | Expor informação de progresso após definição do respetivo mecanismo. |
-| Persistência | Guardar e consultar dados sem tecnologia escolhida nesta fase. |
+## 3. Modelo de dados
 
-A proposta e a comparação arquitetural estão em [architecture.md](./architecture.md). Não estão escolhidos linguagem, frameworks, base de dados, alojamento nem mecanismos de autenticação ou autorização.
+[database.md](./database.md) modela `USER`, `TEAM`, `TEAM_MEMBERSHIP`, `PROJECT`, `TASK`, `TASK_ASSIGNMENT` e `COMMENT`. Cada projeto pertence a uma equipa. Estados e prioridades estão limitados aos valores aprovados. As contagens de tarefas do painel são dados derivados, não persistidos.
 
-## 3. Coerência entre artefactos
+A elegibilidade de responsáveis, pertença de utilizadores a várias equipas, autorização e política de eliminação continuam pendentes.
 
-| Artefacto | Conteúdo atual | Avaliação |
-|---|---|---|
-| [requirements.md](./requirements.md) e [user-stories.md](./user-stories.md) | Requisitos P0 para projetos, equipas, tarefas e progresso; seis histórias iniciais. | Fonte funcional. Detalhes de negócio permanecem em aberto. |
-| [database.md](./database.md) | Entidades `TEAM`, `PROJECT` e `TASK`; relações equipa–projeto e projeto–tarefa. | Alinhado ao domínio mínimo. Cardinalidades e alguns campos são pressupostos explícitos por validar. |
-| [architecture.md](./architecture.md) | Proposta de monólito modular e componentes lógicos. | Coerente com a dimensão atual; não seleciona tecnologia. |
-| [openapi.yaml](../openapi.yaml) | Duas consultas: projetos por equipa e tarefas por projeto. | Adequado ao exercício simplificado; não cobre toda a gestão de tarefas nem progresso. |
-| [wireframe-dashboard.svg](./ui/wireframe-dashboard.svg) | Consulta de projetos e tarefas, com estados de carregamento, vazio e erro. | Alinhado com US01 e US03; conteúdo ilustrativo. Não representa criação, edição ou acesso autenticado. |
+## 4. API
 
-## 4. Inconsistências e omissões encontradas
+[openapi.yaml](../openapi.yaml) documenta autenticação, equipas selecionáveis, projetos CRUD/pesquisa, tarefas CRUD/filtros, responsáveis elegíveis e atribuídos, comentários e painel. Inclui contratos de erro e respostas de autenticação/autorização.
 
-### 4.1. Proposta de arquitetura versus estado no README — corrigido
+O cookie de sessão HTTP-only é uma proposta ainda por confirmar. A ausência de matriz de permissões significa que os endpoints protegidos não podem ser implementados com papéis presumidos.
 
-O [README.md](../README.md) dizia que ainda não havia arquitetura escolhida, embora [architecture.md](./architecture.md) já documentasse uma proposta para o MVP. O README foi atualizado para reconhecer a proposta de monólito modular e distinguir essa decisão das tecnologias ainda não escolhidas. A arquitetura continua identificada como proposta sujeita a validação antes da implementação.
+## 5. Interface
 
-### 4.2. Progresso é requisito, mas o mecanismo está por definir — pendente
+[wireframe-dashboard.svg](./ui/wireframe-dashboard.svg) representa o painel com projetos, pesquisa, contagens por estado, filtros de tarefas e estados loading/empty/error. Os dados são ilustrativos; componentes de outras operações serão detalhados durante os incrementos de UI.
 
-RF05 e US05/US06 requerem acompanhamento de progresso. O modelo propõe um campo de estado para tarefas, mas não define valores nem transições; também não persiste um valor de progresso do projeto. O contrato API não devolve progresso e o wireframe assinala esta lacuna.
+## 6. Reconciliação com o MVP inicial
 
-Isto é uma **lacuna funcional ainda não resolvida**, não uma contradição a corrigir inventando estados, percentagens ou cálculos. A definição do progresso é necessária para completar o modelo e o contrato.
+O MVP original cobria projetos associados a equipas, tarefas e acompanhamento de progresso. A Ficha 03 concretiza esse âmbito e acrescenta explicitamente autenticação, CRUD, estado/prioridade, responsáveis, comentários, pesquisa/filtros e painel inicial. As extensões opcionais (registo público e recuperação de palavra-passe) ficam fora do MVP.
 
-### 4.3. Utilizadores, pertença às equipas e autorização — pendente
+O acompanhamento do painel é concretizado por contagens por estado; não se presume uma percentagem de progresso. O wireframe e o contrato propõem agrupar as contagens por projeto, o que ainda deve ser confirmado. Valores de estado e prioridade foram escolhidos para esta ficha. A cardinalidade projeto–equipa foi definida como 1:N.
 
-As histórias falam de membros de uma equipa, mas o modelo não representa utilizadores nem a relação utilizador–equipa. O contrato API não define autenticação ou autorização. Sem essas decisões, não se consegue determinar como a aplicação identifica a equipa de um membro ou controla o acesso.
+## 7. Decisões necessárias antes da implementação
 
-A ausência de segurança no contrato é agora explicitamente descrita como **não especificada**, e não como autorização para acesso público. A seleção/pertença a equipas no wireframe também deixou de parecer um controlo funcional definido.
+Validar com o formador e atualizar os artefactos relacionados:
 
-### 4.4. Cardinalidade equipa–projeto — pressuposto visível
+1. Permissões por papel para projetos, tarefas, comentários e atribuições.
+2. Critério de elegibilidade para responsáveis.
+3. Possibilidade de um utilizador pertencer a várias equipas.
+4. Protocolo de sessão e requisitos de proteção associados.
+5. Se o painel agrupa contagens por projeto ou apresenta totais globais.
+6. Política de eliminação de projetos/tarefas com dados dependentes.
 
-O modelo assume provisoriamente que cada projeto pertence a uma equipa, embora os requisitos deixem em aberto se um projeto pode pertencer a várias. Se a relação for N:M, o modelo precisará de uma entidade associativa e o contrato deverá refletir a regra acordada.
-
-### 4.5. Cobertura limitada do contrato API — intencional no exercício
-
-As duas operações documentadas cobrem a consulta de projetos por equipa e de tarefas por projeto. Não cobrem consulta detalhada de uma tarefa (US04), operações de criação/edição/eliminação de tarefas, nem progresso (US05/US06). Como o exercício pede pelo menos duas operações, esta limitação é aceitável para o artefacto simplificado, mas não corresponde a uma API completa do MVP.
-
-Os identificadores inteiros positivos da API são uma representação proposta no contrato HTTP; não impõem que a persistência use inteiros, cuja tecnologia e tipos físicos continuam por decidir.
-
-### 4.6. Conteúdo ilustrativo no wireframe — explicitado
-
-Os nomes dos projetos e tarefas são dados fictícios. O wireframe representa consultas e estados de interface, não funcionalidades de edição, atribuição, prioridade, estado ou gestão de utilizadores.
-
-## 5. Perguntas que bloqueiam o desenho final
-
-1. O progresso das tarefas será um estado, uma percentagem ou outra representação? Quais os valores e regras?
-2. O progresso do projeto será calculado a partir das tarefas ou atualizado manualmente?
-3. Um projeto pode pertencer a mais do que uma equipa?
-4. Os utilizadores têm contas? Como se relacionam com equipas e que permissões existem?
-5. Quais os campos mínimos aprovados para projetos e tarefas? Atribuições, prioridades, prazos, comentários ou histórico fazem parte do MVP?
-6. São necessários detalhes de uma tarefa ou operações de escrita no contrato API do exercício?
-
-## 6. Resultado e validação
-
-Foram feitas correções de consistência no estado arquitetural do README, no texto do contrato API e na indicação do contexto de equipa do wireframe. Os requisitos funcionais não foram alterados e não foram inventadas regras para as questões pendentes.
-
-O pack está coerente como **proposta preliminar** para os artefactos produzidos. Não deve ser considerado especificação completa para implementação até serem validados, no mínimo, o mecanismo de progresso e as regras de pertença e acesso às equipas.
+Estas pendências estão refletidas no plano e não devem ser resolvidas por suposições do agente.

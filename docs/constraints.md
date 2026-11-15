@@ -2,103 +2,64 @@
 
 ## 1. Objetivo
 
-Este documento identifica as restrições conhecidas, os pressupostos de trabalho e as decisões técnicas que ainda não foram tomadas no projeto Matriz.
+Este documento regista o âmbito, as decisões técnicas aprovadas para o planeamento da Ficha 03 e as regras de negócio que ainda aguardam validação. Propostas não devem ser tratadas como decisões aprovadas.
 
-O objetivo é evitar que decisões não confirmadas sejam tratadas como requisitos do sistema.
+## 2. Âmbito e restrições da Ficha 03
 
-## 2. Restrições conhecidas
+- A aplicação gere projetos e tarefas de equipas de trabalho.
+- O MVP inclui autenticação, operações de ciclo de vida de projetos e tarefas, responsáveis, comentários, pesquisa/filtros e painel inicial.
+- Cada projeto pertence a uma única equipa; uma equipa pode ter vários projetos.
+- Estados de tarefa: `TODO`, `IN_PROGRESS`, `DONE`.
+- Prioridades de tarefa: `LOW`, `MEDIUM`, `HIGH`.
+- Contas de demonstração são criadas por seed para simplificar autenticação.
+- A seed de demonstração é uma operação explícita, não executada no arranque; usa credenciais locais fictícias e hashes de password. Os fixtures em equipas distintas são dados de teste, não uma decisão sobre autorização.
+- Registo público e recuperação de palavra-passe são extensões opcionais, fora do MVP.
+- As operações de negócio protegidas não serão implementadas até o plano estar consolidado e as regras de acesso relevantes serem validadas com o formador. Scaffold, configuração e estrutura relacional podem avançar sem definir essas permissões.
 
-Com base no enquadramento original do cliente, são conhecidas as seguintes condições:
+## 3. Stack e arquitetura registadas
 
-- A aplicação destina-se à gestão de projetos e tarefas de equipas de trabalho.
-- A aplicação deverá permitir organizar projetos.
-- A aplicação deverá permitir gerir tarefas.
-- A aplicação deverá permitir acompanhar o progresso do trabalho.
-- A fase atual do projeto é dedicada à análise e especificação, não à implementação de código.
+O repositório não continha uma decisão da Aula 02 nem manifestos/código que revelassem uma stack existente. Para viabilizar o planeamento, foi aprovada esta proposta simples:
 
-Não foram fornecidas outras restrições técnicas ou tecnológicas pelo cliente.
+- TypeScript no frontend e backend;
+- React com Vite para a interface;
+- Node.js com Express para a API REST;
+- SQLite com Prisma para persistência;
+- Monólito modular como arquitetura da aplicação.
 
-## 3. Pressupostos de trabalho
+Esta escolha não introduz serviços externos. Detalhes de desenvolvimento, alojamento e autenticação devem ser documentados antes de implementação se afetarem a segurança ou a operação.
 
-Para desenvolver a especificação inicial, considera-se que:
+## 4. Pressupostos de modelação
 
-- Existem equipas de trabalho que utilizam a aplicação.
-- Existem projetos que precisam de ser organizados.
-- Existem tarefas associadas ao trabalho dos projetos.
-- Os utilizadores precisam de consultar informação que lhes permita acompanhar o trabalho.
+- `TEAM`, `PROJECT` e `TASK` são entidades do domínio.
+- Cada projeto pertence exatamente a uma equipa, conforme decisão fornecida para a Ficha 03.
+- Para representar contas e vários responsáveis elegíveis, o modelo precisará de `USER`, associação de utilizadores a equipas, `TASK_ASSIGNMENT` e `COMMENT`.
+- A associação a equipas é uma proposta N:M para permitir utilizadores em equipas; confirmar com o formador se um utilizador pode pertencer a várias equipas.
+- O painel apresenta contagens por estado; não se presume uma percentagem adicional de progresso.
+- O autor e a data de comentário são registados pelo sistema, não escolhidos pelo cliente.
 
-Estes pressupostos decorrem do objetivo geral descrito pelo cliente, mas os detalhes de funcionamento ainda precisam de ser confirmados.
+## 5. Decisões pendentes do formador
 
-## 4. Decisões ainda não tomadas
+As seguintes definições são bloqueios para autorização e operações de escrita. Não implementar regras de permissão inferidas:
 
-As seguintes decisões não devem ser assumidas nesta fase:
+1. Quem pode listar e consultar projetos, e quem pode criar, editar ou eliminar cada projeto?
+2. Quem pode consultar e alterar tarefas?
+3. Quem pode consultar ou adicionar comentários?
+4. Quem pode associar ou remover responsáveis?
+5. Que utilizadores são elegíveis para uma tarefa — por exemplo, membros da equipa do projeto?
+6. Pode um utilizador pertencer a mais do que uma equipa?
+7. Pode um projeto ser transferido para outra equipa?
+8. Eliminar um projeto elimina as respetivas tarefas/comentários, é recusado com dependências ou segue outra política? E eliminar uma tarefa com comentários/atribuições?
+9. Qual o mecanismo de sessão/autenticação a adotar para o contrato e a aplicação, e que mitigação CSRF é necessária?
+10. As contagens de tarefas por estado do painel são globais ou agrupadas por projeto?
 
-### 4.1. Utilizadores e autenticação
+## 6. Segurança e privacidade
 
-- Será necessário criar contas de utilizador?
-- Como será feita a autenticação?
-- Um utilizador poderá pertencer a várias equipas?
-- Existirão diferentes tipos de utilizador ou permissões?
+- O sistema deve autenticar as operações que exigem identidade e impedir acesso não autorizado; a política concreta aguarda validação.
+- Senhas nunca devem ser armazenadas em texto simples; guardar apenas hashes de senha.
+- Segredos e credenciais de demonstração não devem ser commitados como valores reais; documentar como as contas seed são inicializadas de forma segura.
+- Autoria de comentários deve derivar do utilizador autenticado.
+- Consultas e listas devem respeitar a política de acesso validada para evitar exposição de dados de outras equipas.
 
-### 4.2. Equipas e projetos
+## 7. Estado
 
-- Como serão criadas e geridas as equipas?
-- Como serão associados os projetos às equipas?
-- Um projeto poderá pertencer a várias equipas?
-- Quem poderá criar, editar ou eliminar projetos?
-
-### 4.3. Tarefas
-
-- Que informação deverá conter uma tarefa?
-- Como serão atribuídas as tarefas?
-- Que estados e prioridades estarão disponíveis?
-- Como serão definidos os prazos?
-- Existirá um histórico de alterações?
-
-### 4.4. Tecnologia e arquitetura
-
-Ainda não foram escolhidos:
-
-- Linguagem de programação;
-- Frameworks;
-- Arquitetura da aplicação;
-- Base de dados;
-- Serviços externos;
-- Modelo de alojamento;
-- Mecanismos de autenticação e autorização.
-
-Estas decisões deverão ser tomadas com base nos requisitos validados.
-
-## 5. Segurança e privacidade
-
-Como a aplicação poderá armazenar informação relativa a equipas, projetos, tarefas e utilizadores, será necessário analisar:
-
-- Controlo de acesso à informação;
-- Permissões dos utilizadores;
-- Proteção dos dados armazenados;
-- Privacidade da informação das equipas;
-- Segurança das operações realizadas na aplicação.
-
-Os mecanismos concretos de segurança ainda não estão definidos.
-
-## 6. Limitações desta especificação
-
-A informação inicial fornecida pelo cliente é genérica e não define detalhadamente:
-
-- Funcionalidades;
-- Regras de negócio;
-- Requisitos técnicos;
-- Prioridades;
-- Perfis de utilizador;
-- Fluxos de trabalho.
-
-Por esse motivo, a especificação atual deve ser considerada preliminar e sujeita a validação.
-
-## 7. Princípio de evolução
-
-Qualquer nova decisão deverá:
-
-1. Ter uma justificação baseada numa necessidade identificada.
-2. Ser documentada.
-3. Ser consistente com os requisitos e histórias de utilizador.
-4. Ser validada antes de ser considerada parte definitiva da solução.
+O âmbito da Ficha 03, stack aprovada para o plano, relação projeto–equipa 1:N e enums de tarefa foram registados. A política de autorização, elegibilidade, pertença de utilizadores a equipas, eliminação de dependências e protocolo de sessão continuam pendentes de validação. O plano pode ser preparado, mas incrementos dependentes destas regras ficam bloqueados.

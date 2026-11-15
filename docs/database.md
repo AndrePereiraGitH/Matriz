@@ -1,121 +1,131 @@
 # Matriz — Modelo de Dados e Diagrama ER
 
-## 1. Objetivo e estado do modelo
+## 1. Objetivo e estado
 
-Este documento apresenta um modelo conceptual preliminar para os dados essenciais do MVP da Matriz. Baseia-se nos requisitos e histórias de utilizador atuais, considerando também os anexos de modelação como material de apoio, não como decisões aprovadas.
+Este modelo conceptual consolida o âmbito da Ficha 03 com o MVP inicial. Os identificadores e tipos da tabela são conceptuais, salvo os enums de estado/prioridade escolhidos para a ficha; a secção do esquema físico descreve a implementação Prisma/SQLite.
 
-O âmbito confirmado envolve equipas, projetos, tarefas e acompanhamento do progresso. Os nomes de campos e tipos abaixo são propostas conceptuais; não definem uma tecnologia, um esquema físico ou uma base de dados.
+Decisões registadas para o planeamento: cada projeto pertence a uma equipa; estados `TODO`, `IN_PROGRESS`, `DONE`; prioridades `LOW`, `MEDIUM`, `HIGH`. As regras de autorização e elegibilidade de responsáveis continuam pendentes de validação com o formador.
 
-## 2. Requisitos relevantes
+## 2. Entidades e atributos
 
-| Referência | Necessidade |
-|---|---|
-| RF01 / US01 | Organizar e consultar projetos associados a uma equipa. |
-| RF02 / US02 | Associar projetos a equipas de trabalho. |
-| RF03 / US03 | Gerir tarefas associadas a projetos. |
-| RF04 / US04 | Consultar informação de uma tarefa e identificar o projeto a que pertence. |
-| RF05 / US05 / US06 | Acompanhar o progresso de projetos e tarefas. O mecanismo ainda não está definido. |
+| Entidade | Atributos conceptuais | Identificadores e regras |
+|---|---|---|
+| **USER** (Utilizador) | `id`, `name`, `email`, `password_hash` | `id` é PK. `email` identifica a conta e deve ser único. `password_hash` guarda apenas um hash, nunca a palavra-passe em texto simples; não é exposto pela API. |
+| **TEAM** (Equipa) | `id`, `name` | `id` é PK. Campos mínimos propostos; gestão de equipas não faz parte das operações especificadas nesta ficha. |
+| **TEAM_MEMBERSHIP** (Membro de equipa) | `team_id`, `user_id` | PK composta (`team_id`, `user_id`); FKs para `TEAM` e `USER`. Relação associativa proposta para representar utilizadores em equipas. Se um utilizador pode pertencer a várias equipas aguarda confirmação. Papel/permissão não é atributo definido. |
+| **PROJECT** (Projeto) | `id`, `team_id`, `name`, `description` | `id` é PK; `team_id` é FK obrigatória para `TEAM`. Cada projeto pertence a uma única equipa, conforme decisão da Ficha 03. |
+| **TASK** (Tarefa) | `id`, `project_id`, `title`, `description`, `status`, `priority` | `id` é PK; `project_id` é FK obrigatória. `status` ∈ `{TODO, IN_PROGRESS, DONE}`; `priority` ∈ `{LOW, MEDIUM, HIGH}`. |
+| **TASK_ASSIGNMENT** (Responsável) | `task_id`, `user_id`, `assigned_at` | PK composta (`task_id`, `user_id`); FKs para `TASK` e `USER`. A chave composta impede duplicar a mesma atribuição. `assigned_at` é definido pelo sistema. |
+| **COMMENT** (Comentário) | `id`, `task_id`, `author_id`, `content`, `created_at` | `id` é PK; `task_id` e `author_id` são FKs obrigatórias. Autor vem do utilizador autenticado e `created_at` é definido pelo sistema. |
 
-## 3. Entidades e atributos propostos
+`name`, `title`, descrições e comprimentos ainda necessitam de validação de regras de campo. O esquema físico inicial usa Prisma/SQLite, identificadores CUID, timestamps geridos pela aplicação e tabelas em `snake_case`; as migrations versionadas ficam em `apps/api/prisma/migrations/`.
 
-Os atributos marcados como **propostos** são escolhas mínimas de modelação para identificar e relacionar os elementos do domínio; não estão todos especificados como campos obrigatórios nos requisitos.
+Como SQLite não aplica enums Prisma nativos, `TASK.status` e `TASK.priority` são armazenados como texto e limitados por `CHECK` na migration. O cliente Prisma é gerado automaticamente após a instalação das dependências. As relações usam restrição de eliminação, sem cascade, como salvaguarda para não apagar dados dependentes enquanto a política de eliminação não for validada. Esta escolha técnica não substitui a decisão funcional pendente.
 
-| Entidade | Atributo | Tipo conceptual | Identificador / restrição | Estado e justificação |
-|---|---|---|---|---|
-| **TEAM** (Equipa) | `id` | Identificador | PK | Identificador proposto para cada equipa. |
-|  | `name` | Texto | — | Nome proposto para identificar a equipa; confirmar campos e regras. |
-| **PROJECT** (Projeto) | `id` | Identificador | PK | Identificador proposto para cada projeto. |
-|  | `name` | Texto | — | Nome proposto para identificar o projeto. |
-|  | `description` | Texto, opcional | — | Campo ilustrativo presente no modelo do anexo; não é requisito confirmado. |
-|  | `team_id` | Identificador | FK → `TEAM.id`, obrigatório segundo o pressuposto adotado | Representa a associação do projeto à equipa (RF02 / US02). |
-| **TASK** (Tarefa) | `id` | Identificador | PK | Identificador proposto para cada tarefa. |
-|  | `title` | Texto | — | Título proposto para identificar a tarefa (US04). |
-|  | `description` | Texto, opcional | — | Campo ilustrativo presente no modelo do anexo; não é requisito confirmado. |
-|  | `status` | Valor de estado ainda por definir | Obrigatoriedade e valores por confirmar | Proposta de representação do progresso da tarefa (RF05 / US06); não se definem estados nem transições. |
-|  | `project_id` | Identificador | FK → `PROJECT.id`, obrigatório segundo o pressuposto adotado | Liga a tarefa ao projeto (RF03 / US03). |
+## 3. Relações e cardinalidades
 
-Os tipos são conceptuais. O tipo físico dos identificadores, os limites dos textos, a nulabilidade definitiva e eventuais restrições de unicidade dependem de decisões futuras.
+| Relação | Cardinalidade | Interpretação / estado |
+|---|---|---|
+| `TEAM` — `PROJECT` | 1:N | Cada projeto tem exatamente uma equipa; a equipa pode não ter projetos ou ter vários. Decisão registada para a Ficha 03. |
+| `TEAM` — `TEAM_MEMBERSHIP` — `USER` | N:M | Modela a associação equipa–utilizador e suporta seleção de membros. Se a pertença a múltiplas equipas é permitida ainda está por validar. |
+| `PROJECT` — `TASK` | 1:N | Cada tarefa pertence a um projeto; um projeto pode ainda não ter tarefas ou ter várias. |
+| `TASK` — `TASK_ASSIGNMENT` — `USER` | N:M | Uma tarefa pode ter vários responsáveis; um utilizador pode ser responsável por várias tarefas. Quem é elegível para ser associado aguarda validação. |
+| `TASK` — `COMMENT` | 1:N | Cada comentário pertence a uma tarefa; a tarefa pode não ter comentários ou ter vários. |
+| `USER` — `COMMENT` | 1:N | Cada comentário tem exatamente um autor; um utilizador pode escrever vários comentários. |
 
-## 4. Relacionamentos e cardinalidades
-
-| Relação | Cardinalidade proposta | Obrigatoriedade | Fundamentação / pressuposto |
-|---|---|---|---|
-| `TEAM` — `PROJECT` | Uma equipa pode ter zero ou muitos projetos; cada projeto pertence a uma equipa. | A associação de um projeto é obrigatória no modelo proposto. | RF02 e US02 pedem associação a equipas. **Pressuposto por validar:** um projeto pertence a uma única equipa; `constraints.md` deixa em aberto se poderá pertencer a várias. |
-| `PROJECT` — `TASK` | Um projeto pode ter zero ou muitas tarefas; cada tarefa pertence a um projeto. | A associação de uma tarefa é obrigatória no modelo proposto. | RF03 e US03 definem tarefas associadas a projetos, e os critérios de US03 dizem que a tarefa deve identificar o projeto. |
-
-Não é incluída uma relação `USER`–`TEAM` ou `USER`–`TASK`: a associação de membros a equipas e a atribuição de tarefas ainda não foram confirmadas como requisitos.
-
-## 5. Diagrama ER
+## 4. Diagrama ER
 
 ```mermaid
 erDiagram
+    USER {
+        identifier id PK
+        string name
+        string email UK
+        string password_hash
+    }
+
     TEAM {
         identifier id PK
         string name
     }
 
+    TEAM_MEMBERSHIP {
+        identifier team_id PK, FK
+        identifier user_id PK, FK
+    }
+
     PROJECT {
         identifier id PK
+        identifier team_id FK
         string name
         string description
-        identifier team_id FK
     }
 
     TASK {
         identifier id PK
+        identifier project_id FK
         string title
         string description
         string status
-        identifier project_id FK
+        string priority
+    }
+
+    TASK_ASSIGNMENT {
+        identifier task_id PK, FK
+        identifier user_id PK, FK
+        datetime assigned_at
+    }
+
+    COMMENT {
+        identifier id PK
+        identifier task_id FK
+        identifier author_id FK
+        string content
+        datetime created_at
     }
 
     TEAM ||--o{ PROJECT : organizes
+    TEAM ||--o{ TEAM_MEMBERSHIP : includes
+    USER ||--o{ TEAM_MEMBERSHIP : joins
     PROJECT ||--o{ TASK : contains
+    TASK ||--o{ TASK_ASSIGNMENT : has
+    USER ||--o{ TASK_ASSIGNMENT : receives
+    TASK ||--o{ COMMENT : has
+    USER ||--o{ COMMENT : writes
 ```
 
-O diagrama representa as cardinalidades propostas acima. Em particular, codifica provisoriamente que cada projeto pertence a exatamente uma equipa e cada tarefa a exatamente um projeto; essas obrigatoriedades devem ser confirmadas antes de orientar a implementação.
+## 5. Integridade e dados derivados
 
-## 6. Regras de integridade propostas
+- PKs são únicas e não nulas; FKs devem referenciar registos existentes.
+- `PROJECT.team_id`, `TASK.project_id`, `TASK_ASSIGNMENT.task_id/user_id`, `COMMENT.task_id/author_id` e `TEAM_MEMBERSHIP.team_id/user_id` são obrigatórios.
+- A chave composta de `TASK_ASSIGNMENT` e `TEAM_MEMBERSHIP` impede pares duplicados.
+- Estados e prioridades devem aceitar apenas os valores definidos acima.
+- A migration SQLite aplica `CHECK` para os estados e prioridades válidos, além de PKs, unicidade, índices e FKs.
+- O painel calcula contagens de tarefas por estado a partir de `TASK`; não deve persistir contagens redundantes.
+- `password_hash`, autor e data de comentário não devem ser controláveis pelo cliente.
+- A migration inicial usa restrição de FK para impedir a eliminação de registos com dependências. A política funcional definitiva de eliminação continua por validar.
 
-- Cada entidade tem um identificador primário único e não nulo.
-- `PROJECT.team_id` referencia uma equipa existente.
-- `TASK.project_id` referencia um projeto existente.
-- Um projeto e uma tarefa não devem existir sem a respetiva associação, caso se confirme a cardinalidade proposta.
-- Não se impõem regras de unicidade para nomes, títulos ou combinações de atributos sem confirmação do cliente.
-- Não se definem valores permitidos para `TASK.status` nem regras de transição.
-- Não se persiste um atributo de progresso do projeto neste modelo preliminar. O progresso pode depender das tarefas, mas ainda não foi decidido se será calculado automaticamente ou atualizado manualmente. Guardar um valor calculado sem essa decisão poderia duplicar informação e criar inconsistências.
+## 6. Rastreabilidade ao âmbito
 
-## 7. Rastreabilidade
-
-| Entidade / relação | Requisitos e histórias |
+| Entidade / relação | Necessidade |
 |---|---|
-| `TEAM` e relação com `PROJECT` | RF02, US01, US02 |
-| `PROJECT` | RF01, US01, US02 |
-| `TASK` e relação com `PROJECT` | RF03, RF04, US03, US04 |
-| `TASK.status` | RF05, US06 — proposta sujeita à definição do mecanismo e dos estados |
-| Progresso de `PROJECT` | RF05, US05 — coberto como necessidade de consulta, mas sem atributo persistido até ser definido o mecanismo |
+| `USER` | Autenticação, perfil atual, autoria de comentários e atribuições. |
+| `TEAM`, `TEAM_MEMBERSHIP`, `PROJECT` | Projetos por equipa, acesso a projetos e seleção de membros elegíveis; regras de acesso/pertença pendentes. |
+| `TASK` | Ciclo de vida de tarefas, estado, prioridade, pesquisa e filtros. |
+| `TASK_ASSIGNMENT` | Múltiplos responsáveis e remoção de atribuições. |
+| `COMMENT` | Comentários de tarefa com autor e data. |
+| Agregação derivada de `TASK.status` | Contagens por estado no painel; não é entidade nem dado persistido. |
 
-## 8. Elementos dos anexos não incorporados
+## 7. Diferenças face aos anexos e questões pendentes
 
-O resultado de modelação e o ERD nos anexos propõem `USER`, `COMMENT`, `TASK_ASSIGNMENT`, propriedade de projetos por utilizadores e prioridades. Esses elementos não foram incluídos no modelo essencial do MVP porque os documentos atuais os deixam por validar ou não os confirmam como requisitos. O modelo do anexo também não inclui `TEAM`, apesar de a associação de projetos a equipas ser requisito P0.
+O modelo anterior dos anexos propunha utilizadores, comentários, atribuições e um proprietário de projeto, mas omitia equipas e a associação projeto–equipa. Esta versão incorpora equipas como parte essencial e não presume proprietário nem papéis sem decisão de autorização.
 
-Da mesma forma, não se adotam automaticamente as regras e campos ilustrativos do contrato OpenAPI — por exemplo, autenticação JWT, proprietário do projeto, estados e prioridades enumerados, comentários ou atribuições. A especificação OpenAPI é material de exercício e contém pressupostos que ainda precisam de validação.
+Antes de implementar, confirmar com o formador:
 
-## 9. Pressupostos e perguntas por clarificar
+1. A matriz de permissões de projetos, tarefas, comentários e atribuições.
+2. Se a elegibilidade para atribuição equivale a ser membro da equipa do projeto.
+3. Se um utilizador pode pertencer a várias equipas.
+4. A política de eliminação de projetos/tarefas com dados dependentes.
+5. Se o modelo de autenticação exige persistir sessões e que dados de perfil são necessários.
 
-1. Um projeto pode pertencer a várias equipas? Se sim, a relação `TEAM`–`PROJECT` deverá ser N:M e exigirá uma entidade associativa.
-2. Uma tarefa pertence sempre a um único projeto?
-3. Que campos mínimos devem existir em equipas, projetos e tarefas? `name`, `title` e as descrições aqui apresentadas são propostas.
-4. Como se representa o progresso da tarefa: estado, percentagem ou outro mecanismo? O campo `status` é apenas uma proposta.
-5. Como se representa o progresso do projeto: cálculo a partir das tarefas ou atualização manual?
-6. Utilizadores e contas fazem parte do âmbito do MVP? Em caso afirmativo, devem ser modelados a associação de utilizadores a equipas, a atribuição de tarefas e as respetivas regras de acesso?
-7. Comentários, prioridades, prazos e histórico de alterações foram aprovados para o MVP?
-8. Existem regras de unicidade, retenção ou eliminação de projetos e tarefas?
-
-## 10. Revisão de coerência e normalização
-
-- O modelo cobre os conceitos persistentes mínimos diretamente relacionados com equipas, projetos e tarefas.
-- As tarefas são representadas separadamente dos projetos e ligadas por uma FK; não se repetem listas de tarefas dentro do registo de projeto.
-- O progresso do projeto não é duplicado como atributo persistido enquanto o cálculo ou a atualização manual não forem decididos.
-- Não foram acrescentadas entidades associativas ou funcionalidades não confirmadas.
-- O modelo está sujeito a revisão após a resposta às perguntas acima; não deve ser considerado aprovado nem usado como esquema físico antes dessa validação.
+O esquema Prisma e a migration inicial implementam as entidades e relações descritas. As operações protegidas que dependem das respostas pendentes não devem ser consideradas prontas para implementação.

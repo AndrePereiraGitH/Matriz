@@ -58,7 +58,7 @@ Como ainda não foram clarificados todos os detalhes funcionais, algumas histór
 
 - Quando consulto um projeto, o sistema apresenta as tarefas associadas a esse projeto.
 - Cada tarefa apresentada deve permitir identificar a que projeto pertence.
-- As operações concretas de criação, edição e eliminação de tarefas deverão ser confirmadas com o cliente.
+- O ciclo de vida de criação, consulta, edição e eliminação de tarefas está incluído na Ficha 03 e detalhado em US09.
 
 ### US04 — Consultar informação de uma tarefa
 
@@ -81,7 +81,7 @@ Como ainda não foram clarificados todos os detalhes funcionais, algumas histór
 
 **Como** membro de uma equipa,
 
-**Quero** consultar o progresso de um projeto,
+**Quero** consultar as contagens de tarefas por estado no painel,
 
 **Para** perceber o estado do trabalho realizado e do trabalho ainda pendente.
 
@@ -89,10 +89,8 @@ Como ainda não foram clarificados todos os detalhes funcionais, algumas histór
 
 **Critérios de aceitação:**
 
-- Quando consulto um projeto, o sistema apresenta informação sobre o seu progresso.
-- A informação apresentada deve refletir os dados das tarefas associadas ao projeto, de acordo com o mecanismo de cálculo ou acompanhamento que vier a ser definido.
-
-**Questão em aberto:** O progresso será calculado automaticamente a partir das tarefas ou atualizado manualmente?
+- No painel inicial, o progresso do projeto é apresentado como contagens de tarefas por estado (`TODO`, `IN_PROGRESS`, `DONE`).
+- O painel não apresenta uma percentagem nem um cálculo diferente sem validação adicional.
 
 ### US06 — Acompanhar o progresso de uma tarefa
 
@@ -106,30 +104,122 @@ Como ainda não foram clarificados todos os detalhes funcionais, algumas histór
 
 **Critérios de aceitação:**
 
-- Quando consulto uma tarefa, o sistema apresenta o respetivo estado de progresso, caso esteja definido.
-- A informação apresentada deve corresponder ao estado registado no sistema.
+- Quando consulto uma tarefa, o sistema apresenta o respetivo estado de progresso.
+- A informação apresentada corresponde ao estado registado no sistema.
+- Os estados definidos para o âmbito da Ficha 03 são `TODO`, `IN_PROGRESS` e `DONE`.
+- As regras de transição entre estados ainda precisam de validação.
 
-**Questão em aberto:** É necessário definir os estados possíveis e as regras de transição entre estados.
+### US07 — Iniciar e terminar sessão
 
-## 3. Funcionalidades a clarificar
+**Como** utilizador com uma conta de demonstração,
 
-As seguintes histórias poderão ser adicionadas depois de serem validadas com o cliente:
+**Quero** iniciar e terminar sessão e consultar o meu perfil autenticado,
 
-- Atribuir tarefas a membros específicos da equipa;
-- Definir prazos e prioridades;
-- Adicionar comentários às tarefas;
-- Consultar o histórico de alterações;
-- Filtrar e pesquisar projetos e tarefas;
-- Gerir permissões dos membros;
-- Receber notificações sobre alterações;
-- Consultar relatórios de progresso.
+**Para** utilizar a aplicação com a minha identidade.
 
-Estas funcionalidades não devem ser consideradas requisitos confirmados enquanto não forem validadas.
+**Prioridade:** P0
+
+**Critérios de aceitação:**
+
+- Credenciais válidas permitem iniciar sessão; credenciais inválidas não autenticam o utilizador.
+- O utilizador autenticado consegue consultar o seu perfil.
+- Terminar sessão invalida a sessão atual.
+- As contas de demonstração são disponibilizadas por seed; registo público e recuperação de palavra-passe ficam fora do MVP.
+
+### US08 — Gerir e pesquisar projetos
+
+**Como** utilizador autorizado,
+
+**Quero** criar, listar, consultar, editar, eliminar e pesquisar projetos,
+
+**Para** organizar o trabalho da equipa.
+
+**Prioridade:** P0
+
+**Critérios de aceitação:**
+
+- O utilizador consegue listar e pesquisar pelo nome os projetos a que tem acesso.
+- O utilizador consegue consultar o detalhe de um projeto.
+- O utilizador autorizado consegue criar, editar e eliminar projetos.
+- A aplicação rejeita operações não autorizadas segundo a matriz de permissões a validar com o formador.
+- Cada projeto pertence a uma única equipa, conforme decisão de planeamento para a Ficha 03.
+
+### US09 — Gerir e filtrar tarefas
+
+**Como** utilizador autorizado de um projeto,
+
+**Quero** criar, consultar, editar e eliminar tarefas e definir estado e prioridade,
+
+**Para** organizar e acompanhar o trabalho do projeto.
+
+**Prioridade:** P0
+
+**Critérios de aceitação:**
+
+- As tarefas são associadas ao projeto e a sua consulta identifica esse projeto.
+- Os estados aceites são `TODO`, `IN_PROGRESS` e `DONE`.
+- As prioridades aceites são `LOW`, `MEDIUM` e `HIGH`.
+- É possível filtrar as tarefas de um projeto por estado e/ou prioridade.
+- Permissões de consulta e alteração seguem a política a validar com o formador.
+
+### US10 — Gerir responsáveis de tarefas
+
+**Como** utilizador autorizado,
+
+**Quero** associar vários utilizadores elegíveis a uma tarefa e remover essas associações,
+
+**Para** identificar os responsáveis pelo trabalho.
+
+**Prioridade:** P0
+
+**Critérios de aceitação:**
+
+- Uma tarefa pode ter mais do que um responsável.
+- Uma atribuição existente não é duplicada.
+- É possível consultar os responsáveis e remover uma atribuição.
+- A regra que determina quem é elegível e quem pode gerir atribuições aguarda validação do formador.
+
+### US11 — Comentar tarefas
+
+**Como** utilizador autorizado,
+
+**Quero** adicionar e consultar comentários de uma tarefa,
+
+**Para** registar informação relevante sobre o trabalho.
+
+**Prioridade:** P0
+
+**Critérios de aceitação:**
+
+- Um comentário fica associado à tarefa, ao utilizador autenticado que o escreveu e à data de criação.
+- A listagem apresenta autor e data de cada comentário.
+- O cliente não pode indicar ou falsificar o autor ou a data de criação.
+- As permissões para consultar e adicionar comentários aguardam validação do formador.
+
+### US12 — Consultar o painel inicial
+
+**Como** utilizador autenticado,
+
+**Quero** consultar os projetos a que tenho acesso e as contagens de tarefas por estado,
+
+**Para** acompanhar o trabalho e navegar para o detalhe de um projeto.
+
+**Prioridade:** P0
+
+**Critérios de aceitação:**
+
+- O painel apresenta apenas projetos acessíveis ao utilizador conforme a política aprovada.
+- Apresenta contagens para `TODO`, `IN_PROGRESS` e `DONE`, incluindo zero quando não existem tarefas nesse estado.
+- O wireframe propõe agrupar as contagens por projeto; confirmar esse agrupamento antes da implementação.
+- A seleção de um projeto abre o respetivo detalhe.
+
+## 3. Funcionalidades fora do MVP
+
+- Registo público e recuperação de palavra-passe são extensões opcionais.
+- Notificações, relatórios avançados, histórico de alterações e outras funcionalidades não indicadas no âmbito da Ficha 03 não são assumidos.
 
 ## 4. Observações
 
-As histórias de utilizador apresentadas representam uma primeira interpretação das necessidades do cliente.
+As US01–US06 documentam o âmbito inicial. As US07–US12 registam as funcionalidades adicionais explicitamente pedidas para a Ficha 03, conciliadas com o MVP inicial.
 
-Os critérios de aceitação definem comportamentos gerais que podem ser verificados, mas alguns dependem de decisões ainda em aberto.
-
-Antes da implementação, será necessário refinar as histórias, definir os campos e regras de negócio e validar os critérios de aceitação.
+Os critérios dependentes de papéis, elegibilidade e acesso não devem ser tratados como implementáveis até à validação da respetiva matriz com o formador.
