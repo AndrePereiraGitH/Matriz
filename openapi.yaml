@@ -160,7 +160,9 @@ paths:
             type: string
       responses:
         '200':
-          description:           Projetos de equipas onde o utilizador autenticado é membro, possivelmente lista vazia.
+          description: |
+            Projetos de equipas onde o utilizador autenticado é membro,
+            possivelmente uma lista vazia.
           content:
             application/json:
               schema:
@@ -173,6 +175,8 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
     post:
       tags: [Projetos]
       summary: Criar projeto
@@ -318,6 +322,8 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
     post:
       tags: [Tarefas]
       summary: Criar tarefa no projeto
@@ -483,8 +489,9 @@ paths:
       tags: [Responsáveis]
       summary: Associar responsável à tarefa
       description: |
-        Membros da equipa podem gerir atribuições. Apenas utilizadores membros
-        dessa equipa são elegíveis. A operação é idempotente.
+        Membros da equipa podem gerir atribuições. O utilizador tem de existir
+        e ser membro da equipa do projeto. Repetir uma associação existente é
+        idempotente e não cria uma atribuição duplicada.
       operationId: assignTaskUser
       security:
         - sessionCookie: []
@@ -497,9 +504,17 @@ paths:
         '403':
           $ref: '#/components/responses/Forbidden'
         '404':
-          $ref: '#/components/responses/NotFound'
+          description: A tarefa ou o utilizador não existe ou não está acessível.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '422':
-          $ref: '#/components/responses/ValidationError'
+          description: O utilizador existe, mas não é membro elegível da equipa.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
     delete:
       tags: [Responsáveis]
       summary: Remover responsável da tarefa
@@ -546,7 +561,8 @@ paths:
       summary: Adicionar comentário à tarefa
       description: |
         Membros da equipa do projeto podem comentar. O autor e a data são
-        definidos pelo sistema a partir da sessão e do servidor.
+        definidos pelo sistema a partir da sessão e do servidor. O conteúdo
+        deve ter entre 1 e 2000 caracteres e não pode conter apenas espaços.
       operationId: createTaskComment
       security:
         - sessionCookie: []
@@ -828,6 +844,9 @@ components:
         content:
           type: string
           minLength: 1
+          maxLength: 2000
+          pattern: '\S'
+          description: Não pode conter apenas espaços em branco.
 
     Comment:
       type: object
@@ -844,6 +863,9 @@ components:
           $ref: '#/components/schemas/User'
         content:
           type: string
+          minLength: 1
+          maxLength: 2000
+          pattern: '\S'
         createdAt:
           type: string
           format: date-time

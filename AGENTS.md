@@ -86,3 +86,33 @@ Choose implementation details only within the approved scope, and explain any de
 - Não assumir que decisões, funcionalidades ou exemplos presentes em exercícios anteriores continuam válidos.
 - Quando existirem contradições entre documentos, identificar o problema e pedir esclarecimentos antes de tomar decisões.
 - Não introduzir funcionalidades ou decisões técnicas sem justificação nos requisitos ou aprovação explícita.
+
+## Execução e verificação local
+
+Requisitos: Node.js 22.12 ou superior e npm. A partir da raiz do repositório, numa cópia limpa:
+
+```sh
+npm ci
+test -e apps/api/.env || cp apps/api/.env.example apps/api/.env
+npm run db:generate -w @matriz/api
+npm run db:migrate -w @matriz/api
+npm run db:seed -w @matriz/api
+npm run dev
+```
+
+Configure as palavras-passe locais fictícias em `apps/api/.env` antes da seed; não versione esse ficheiro. A seed é explícita e não corre no arranque. A interface e a API ficam disponíveis em `http://localhost:5173` e `http://localhost:3000`.
+
+Verificações disponíveis a partir da raiz:
+
+```sh
+npm test
+npm run typecheck
+npm run build
+npm run lint
+```
+
+Os testes Vitest da API criam uma base SQLite temporária, aplicam as migrations e removem a base no fim. Para executar um caso focado:
+
+```sh
+npm test -- apps/api/test/auth.test.ts -t "persists a created task"
+```

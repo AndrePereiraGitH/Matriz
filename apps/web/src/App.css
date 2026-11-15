@@ -85,14 +85,17 @@ h2 {
 }
 
 .login-form,
-.project-form {
+.project-form,
+.comment-form {
   display: grid;
   gap: 0.65rem;
 }
 
 .login-form label,
-.project-form label {
+.project-form label,
+.comment-form label {
   margin-top: 0.45rem;
+  color: #20352f;
   font-size: 0.9rem;
   font-weight: 650;
 }
@@ -101,8 +104,12 @@ h2 {
 .project-form input,
 .project-form select,
 .project-form textarea,
-.search-form input {
+.comment-form textarea,
+.search-form input,
+.task-filters select,
+.assignee-controls select {
   width: 100%;
+  min-width: 0;
   min-height: 2.8rem;
   padding: 0.65rem 0.75rem;
   color: #20352f;
@@ -112,6 +119,11 @@ h2 {
 }
 
 .project-form textarea {
+  min-height: 6rem;
+  resize: vertical;
+}
+
+.comment-form textarea {
   min-height: 6rem;
   resize: vertical;
 }
@@ -126,7 +138,10 @@ h2 {
 .project-form input:focus-visible,
 .project-form select:focus-visible,
 .project-form textarea:focus-visible,
+.comment-form textarea:focus-visible,
 .search-form input:focus-visible,
+.task-filters select:focus-visible,
+.assignee-controls select:focus-visible,
 button:focus-visible {
   outline: 3px solid #8cc6a8;
   outline-offset: 2px;
@@ -358,20 +373,6 @@ button:focus-visible {
   font-weight: 650;
 }
 
-.task-filters select {
-  min-height: 2.75rem;
-  padding: 0.55rem 0.7rem;
-  color: #20352f;
-  background: #fff;
-  border: 1px solid #b8c8bd;
-  border-radius: 0.45rem;
-}
-
-.task-filters select:focus-visible {
-  outline: 3px solid #8cc6a8;
-  outline-offset: 2px;
-}
-
 .task-filters .secondary-button {
   min-height: 2.75rem;
 }
@@ -416,6 +417,140 @@ button:focus-visible {
 
 .task-detail .project-details {
   margin-top: 1.25rem;
+}
+
+.assignee-section {
+  margin-top: 1.75rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e6ece8;
+}
+
+.assignee-section h3 {
+  margin: 0 0 1rem;
+  font-size: 1.05rem;
+}
+
+.assignee-section .message {
+  margin-top: 1rem;
+}
+
+.comment-section {
+  margin-top: 1.75rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e6ece8;
+}
+
+.comment-section h3 {
+  margin: 0 0 1rem;
+  font-size: 1.05rem;
+}
+
+.comment-section .message {
+  margin-top: 1rem;
+}
+
+.comment-empty {
+  margin: 0.75rem 0;
+  color: #53645e;
+  font-size: 0.9rem;
+}
+
+.comment-list {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.comment-list li {
+  padding: 0.85rem 0.95rem;
+  border: 1px solid #dfe8e1;
+  border-radius: 0.55rem;
+}
+
+.comment-meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.35rem 1rem;
+  color: #53645e;
+  font-size: 0.82rem;
+}
+
+.comment-meta span {
+  color: #20352f;
+  font-weight: 650;
+}
+
+.comment-content {
+  margin: 0.65rem 0 0;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.comment-form {
+  margin-top: 1.25rem;
+}
+
+.comment-form .field-hint {
+  margin-top: -0.35rem;
+}
+
+.comment-form .primary-button {
+  justify-self: start;
+  margin-top: 0.9rem;
+}
+
+.assignee-empty {
+  margin: 0.75rem 0;
+  color: #53645e;
+  font-size: 0.9rem;
+}
+
+.assignee-list {
+  display: grid;
+  gap: 0.65rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.assignee-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid #dfe8e1;
+  border-radius: 0.55rem;
+}
+
+.assignee-email {
+  display: block;
+  margin-top: 0.2rem;
+  color: #53645e;
+  font-size: 0.82rem;
+}
+
+.assignee-form {
+  display: grid;
+  gap: 0.55rem;
+  margin-top: 1.25rem;
+}
+
+.assignee-form label {
+  color: #20352f;
+  font-weight: 650;
+}
+
+.assignee-controls {
+  display: flex;
+  gap: 0.65rem;
+}
+
+.assignee-controls select {
+  flex: 1;
 }
 
 .eyebrow {
@@ -530,6 +665,16 @@ button:focus-visible {
     width: 100%;
   }
 
+  .assignee-list li,
+  .assignee-controls {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .assignee-controls .secondary-button {
+    width: 100%;
+  }
+
   .task-filters {
     align-items: stretch;
     flex-direction: column;
@@ -546,5 +691,10 @@ button:focus-visible {
 
   .detail-actions > button {
     flex: 1;
+  }
+
+  .form-actions:not(.detail-actions) {
+    align-items: stretch;
+    flex-direction: column;
   }
 }

@@ -141,6 +141,164 @@ describe('authentication API', () => {
     }
   }
 
+  it('rejects a task title containing only whitespace', async () => {
+    const owner = await login()
+    const headers = {
+      Cookie: owner.cookie,
+      'X-CSRF-Token': owner.body.csrfToken,
+      'Content-Type': 'application/json',
+    }
+    const projectResponse = await fetch(`${apiBaseUrl}/projects`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        teamId: 'demo-team-a',
+        name: 'Projeto para validar título',
+      }),
+    })
+    const project = (await projectResponse.json()) as { id: string }
+    expect(projectResponse.status).toBe(201)
+
+    const response = await fetch(
+      `${apiBaseUrl}/projects/${project.id}/tasks`,
+      {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          title: '   ',
+          status: 'TODO',
+          priority: 'MEDIUM',
+        }),
+      },
+    )
+
+    expect(response.status).toBe(422)
+    expect(await response.json()).toMatchObject({
+      code: 'VALIDATION_ERROR',
+      details: [
+        {
+          field: 'title',
+          message: 'O título da tarefa não pode conter apenas espaços.',
+        },
+      ],
+    })
+    expect(await database.task.count({ where: { projectId: project.id } })).toBe(
+      0,
+    )
+  })
+
+  it('denies a member of another team access to a task by its known ID', async () => {
+    const owner = await login()
+    const headers = {
+      Cookie: owner.cookie,
+      'X-CSRF-Token': owner.body.csrfToken,
+      'Content-Type': 'application/json',
+    }
+    const projectResponse = await fetch(`${apiBaseUrl}/projects`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        teamId: 'demo-team-a',
+        name: 'Projeto para testar autorização',
+      }),
+    })
+    const project = (await projectResponse.json()) as { id: string }
+    expect(projectResponse.status).toBe(201)
+
+    const taskResponse = await fetch(
+      `${apiBaseUrl}/projects/${project.id}/tasks`,
+      {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          title: 'Tarefa protegida por equipa',
+          status: 'TODO',
+          priority: 'MEDIUM',
+        }),
+      },
+    )
+    const task = (await taskResponse.json()) as { id: string }
+    expect(taskResponse.status).toBe(201)
+
+    const otherTeamMember = await login(
+      'bruno.demo@example.test',
+      demoPasswords.userB,
+    )
+    const deniedResponse = await fetch(`${apiBaseUrl}/tasks/${task.id}`, {
+      headers: { Cookie: otherTeamMember.cookie },
+    })
+
+    expect(deniedResponse.status).toBe(404)
+  })
+
+  it('persists a created task and returns it in a subsequent read', async () => {
+    const owner = await login()
+    const headers = {
+      Cookie: owner.cookie,
+      'X-CSRF-Token': owner.body.csrfToken,
+      'Content-Type': 'application/json',
+    }
+    const projectResponse = await fetch(`${apiBaseUrl}/projects`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        teamId: 'demo-team-a',
+        name: 'Projeto para verificar persistência',
+      }),
+    })
+    const project = (await projectResponse.json()) as { id: string }
+    expect(projectResponse.status).toBe(201)
+
+    const createResponse = await fetch(
+      `${apiBaseUrl}/projects/${project.id}/tasks`,
+      {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          title: 'Tarefa persistida e consultada',
+          description: 'Verificação de persistência após criação.',
+          status: 'TODO',
+          priority: 'HIGH',
+        }),
+      },
+    )
+    const createdTask = (await createResponse.json()) as {
+      id: string
+      projectId: string
+      title: string
+      description: string
+      status: string
+      priority: string
+    }
+    expect(createResponse.status).toBe(201)
+
+    const persistedTask = await database.task.findUnique({
+      where: { id: createdTask.id },
+    })
+    const readResponse = await fetch(
+      `${apiBaseUrl}/tasks/${createdTask.id}`,
+      { headers: { Cookie: owner.cookie } },
+    )
+
+    expect(persistedTask).toMatchObject({
+      id: createdTask.id,
+      projectId: project.id,
+      title: 'Tarefa persistida e consultada',
+      description: 'Verificação de persistência após criação.',
+      status: 'TODO',
+      priority: 'HIGH',
+    })
+    expect(readResponse.status).toBe(200)
+    expect(await readResponse.json()).toMatchObject({
+      id: createdTask.id,
+      projectId: project.id,
+      title: 'Tarefa persistida e consultada',
+      description: 'Verificação de persistência após criação.',
+      status: 'TODO',
+      priority: 'HIGH',
+    })
+  })
+
   it('creates an HttpOnly session for valid credentials without exposing the hash', async () => {
     const { response, cookie, body } = await login()
     const storedSession = await database.session.findFirstOrThrow({
@@ -1109,7 +1267,7 @@ describe('authentication API', () => {
     expect(deleteProjectResponse.status).toBe(204)
   })
 
-  it('returns per-project task counts including zero states and reflects each task mutation', async () => {
+  it('returns full per-project task counts independent of list filters and reflects each task mutation', async () => {
     const owner = await login()
     const headers = {
       Cookie: owner.cookie,
@@ -1191,6 +1349,41 @@ describe('authentication API', () => {
       DONE: 0,
     })
 
+    const secondTaskResponse = await fetch(
+      `${apiBaseUrl}/projects/${project.id}/tasks`,
+      {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          title: 'Segunda tarefa para contagem',
+          status: 'DONE',
+          priority: 'HIGH',
+        }),
+      },
+    )
+    const secondTask = (await secondTaskResponse.json()) as { id: string }
+    expect(secondTaskResponse.status).toBe(201)
+    expect(await getTaskCounts()).toEqual({
+      TODO: 1,
+      IN_PROGRESS: 0,
+      DONE: 1,
+    })
+
+    const filteredTasksResponse = await fetch(
+      `${apiBaseUrl}/projects/${project.id}/tasks?status=TODO`,
+      { headers: { Cookie: owner.cookie } },
+    )
+    const filteredTasks = (await filteredTasksResponse.json()) as Array<{
+      id: string
+    }>
+    expect(filteredTasksResponse.status).toBe(200)
+    expect(filteredTasks.map(({ id }) => id)).toEqual([task.id])
+    expect(await getTaskCounts()).toEqual({
+      TODO: 1,
+      IN_PROGRESS: 0,
+      DONE: 1,
+    })
+
     const updateResponse = await fetch(`${apiBaseUrl}/tasks/${task.id}`, {
       method: 'PATCH',
       headers,
@@ -1200,8 +1393,15 @@ describe('authentication API', () => {
     expect(await getTaskCounts()).toEqual({
       TODO: 0,
       IN_PROGRESS: 0,
-      DONE: 1,
+      DONE: 2,
     })
+
+    const noTodoTasksResponse = await fetch(
+      `${apiBaseUrl}/projects/${project.id}/tasks?status=TODO`,
+      { headers: { Cookie: owner.cookie } },
+    )
+    expect(noTodoTasksResponse.status).toBe(200)
+    expect(await noTodoTasksResponse.json()).toEqual([])
 
     const deleteTaskResponse = await fetch(`${apiBaseUrl}/tasks/${task.id}`, {
       method: 'DELETE',
@@ -1211,6 +1411,23 @@ describe('authentication API', () => {
       },
     })
     expect(deleteTaskResponse.status).toBe(204)
+    expect(await getTaskCounts()).toEqual({
+      TODO: 0,
+      IN_PROGRESS: 0,
+      DONE: 1,
+    })
+
+    const deleteSecondTaskResponse = await fetch(
+      `${apiBaseUrl}/tasks/${secondTask.id}`,
+      {
+        method: 'DELETE',
+        headers: {
+          Cookie: owner.cookie,
+          'X-CSRF-Token': owner.body.csrfToken,
+        },
+      },
+    )
+    expect(deleteSecondTaskResponse.status).toBe(204)
     expect(await getTaskCounts()).toEqual({
       TODO: 0,
       IN_PROGRESS: 0,
@@ -1343,10 +1560,39 @@ describe('authentication API', () => {
         body: JSON.stringify({
           content: 'Comentário de teste',
           authorId: 'demo-user-b',
+          createdAt: '2000-01-01T00:00:00.000Z',
         }),
       },
     )
     expect(spoofedComment.status).toBe(422)
+
+    const submitComment = (content: string) =>
+      fetch(`${apiBaseUrl}/tasks/${task.id}/comments`, {
+        method: 'POST',
+        headers: {
+          Cookie: memberSession.cookie,
+          'X-CSRF-Token': memberSession.csrfToken,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ content }),
+      })
+    const whitespaceComment = await submitComment(' \n\t ')
+    const oversizedComment = await submitComment('x'.repeat(2001))
+    expect(whitespaceComment.status).toBe(422)
+    expect(
+      ((await whitespaceComment.json()) as { details: Array<{ field: string }> })
+        .details[0]?.field,
+    ).toBe('content')
+    expect(oversizedComment.status).toBe(422)
+    expect(
+      ((await oversizedComment.json()) as { details: Array<{ field: string }> })
+        .details[0]?.field,
+    ).toBe('content')
+
+    const shortestComment = await submitComment('x')
+    const longestComment = await submitComment('x'.repeat(2000))
+    expect(shortestComment.status).toBe(201)
+    expect(longestComment.status).toBe(201)
 
     const commentResponse = await fetch(
       `${apiBaseUrl}/tasks/${task.id}/comments`,
@@ -1364,18 +1610,89 @@ describe('authentication API', () => {
       id: string
       author: { id: string }
       content: string
+      createdAt: string
     }
 
     expect(commentResponse.status).toBe(201)
     expect(comment.author.id).toBe(member.id)
+    expect(Number.isNaN(Date.parse(comment.createdAt))).toBe(false)
     expect(
       await database.comment.findFirstOrThrow({
         where: { id: comment.id },
       }),
-    ).toMatchObject({ authorId: member.id, taskId: task.id })
+    ).toMatchObject({
+      authorId: member.id,
+      taskId: task.id,
+      createdAt: new Date(comment.createdAt),
+    })
+    const commentsResponse = await fetch(
+      `${apiBaseUrl}/tasks/${task.id}/comments`,
+      { headers: { Cookie: memberSession.cookie } },
+    )
+    const comments = (await commentsResponse.json()) as Array<{
+      author: { id: string }
+      content: string
+      createdAt: string
+    }>
+    expect(commentsResponse.status).toBe(200)
+    expect(comments).toHaveLength(3)
+    expect(comments.map(({ content }) => content)).toContain('x')
+    expect(comments.map(({ content }) => content)).toContain('x'.repeat(2000))
+    expect(comments.map(({ content }) => content)).toContain(
+      'Comentário de membro autorizado',
+    )
+    expect(
+      comments.every(
+        ({ author, createdAt }) =>
+          author.id === member.id && !Number.isNaN(Date.parse(createdAt)),
+      ),
+    ).toBe(true)
 
     const assigned = await fetch(
       `${apiBaseUrl}/tasks/${task.id}/assignees/${member.id}`,
+      {
+        method: 'PUT',
+        headers: {
+          Cookie: owner.cookie,
+          'X-CSRF-Token': owner.body.csrfToken,
+        },
+      },
+    )
+    const duplicateAssignment = await fetch(
+      `${apiBaseUrl}/tasks/${task.id}/assignees/${member.id}`,
+      {
+        method: 'PUT',
+        headers: {
+          Cookie: owner.cookie,
+          'X-CSRF-Token': owner.body.csrfToken,
+        },
+      },
+    )
+    const missingUserAssignment = await fetch(
+      `${apiBaseUrl}/tasks/${task.id}/assignees/nonexistent-user`,
+      {
+        method: 'PUT',
+        headers: {
+          Cookie: owner.cookie,
+          'X-CSRF-Token': owner.body.csrfToken,
+        },
+      },
+    )
+    const ineligibleUserAssignment = await fetch(
+      `${apiBaseUrl}/tasks/${task.id}/assignees/demo-user-b`,
+      {
+        method: 'PUT',
+        headers: {
+          Cookie: owner.cookie,
+          'X-CSRF-Token': owner.body.csrfToken,
+        },
+      },
+    )
+    expect(await database.taskAssignment.count({ where: { taskId: task.id } })).toBe(
+      1,
+    )
+    const assignedOwner = await fetch(
+      `${apiBaseUrl}/tasks/${task.id}/assignees/${owner.body.user.id}`,
       {
         method: 'PUT',
         headers: {
@@ -1392,10 +1709,74 @@ describe('authentication API', () => {
       user: { id: string }
     }>
     expect(assigned.status).toBe(204)
+    expect(duplicateAssignment.status).toBe(204)
+    expect(missingUserAssignment.status).toBe(404)
+    expect(ineligibleUserAssignment.status).toBe(422)
+    expect(assignedOwner.status).toBe(204)
     expect(listedAssignments.status).toBe(200)
-    expect(assignments.map(({ user: assignedUser }) => assignedUser.id)).toContain(
-      member.id,
+    expect(assignments.map(({ user: assignedUser }) => assignedUser.id)).toEqual(
+      expect.arrayContaining([member.id, owner.body.user.id]),
     )
+
+    const reopenedTaskResponse = await fetch(
+      `${apiBaseUrl}/tasks/${task.id}`,
+      { headers: { Cookie: owner.cookie } },
+    )
+    const reopenedCommentsResponse = await fetch(
+      `${apiBaseUrl}/tasks/${task.id}/comments`,
+      { headers: { Cookie: owner.cookie } },
+    )
+    const reopenedAssignmentsResponse = await fetch(
+      `${apiBaseUrl}/tasks/${task.id}/assignees`,
+      { headers: { Cookie: owner.cookie } },
+    )
+    const reopenedComments = (await reopenedCommentsResponse.json()) as Array<{
+      author: { id: string }
+      content: string
+      createdAt: string
+    }>
+    const reopenedAssignments =
+      (await reopenedAssignmentsResponse.json()) as Array<{
+        user: { id: string }
+      }>
+    expect(reopenedTaskResponse.status).toBe(200)
+    expect(reopenedCommentsResponse.status).toBe(200)
+    expect(reopenedAssignmentsResponse.status).toBe(200)
+    expect(reopenedComments).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          author: expect.objectContaining({ id: member.id }),
+          content: 'Comentário de membro autorizado',
+          createdAt: comment.createdAt,
+        }),
+      ]),
+    )
+    expect(
+      reopenedAssignments.map(({ user: assignedUser }) => assignedUser.id),
+    ).toEqual(expect.arrayContaining([member.id, owner.body.user.id]))
+
+    const removedOwnerAssignment = await fetch(
+      `${apiBaseUrl}/tasks/${task.id}/assignees/${owner.body.user.id}`,
+      {
+        method: 'DELETE',
+        headers: {
+          Cookie: owner.cookie,
+          'X-CSRF-Token': owner.body.csrfToken,
+        },
+      },
+    )
+    expect(removedOwnerAssignment.status).toBe(204)
+    const remainingAssignmentsResponse = await fetch(
+      `${apiBaseUrl}/tasks/${task.id}/assignees`,
+      { headers: { Cookie: owner.cookie } },
+    )
+    const remainingAssignments = (await remainingAssignmentsResponse.json()) as Array<{
+      user: { id: string }
+    }>
+    expect(remainingAssignmentsResponse.status).toBe(200)
+    expect(remainingAssignments.map(({ user: assignedUser }) => assignedUser.id)).toEqual([
+      member.id,
+    ])
 
     const memberCanManageTask = await fetch(
       `${apiBaseUrl}/tasks/${task.id}`,

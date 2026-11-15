@@ -145,6 +145,7 @@ Como ainda não foram clarificados todos os detalhes funcionais, algumas histór
 - O nome do projeto não pode conter apenas espaços; a API rejeita dados inválidos com um erro identificando o campo, apresentado pela interface.
 - Apenas membros da equipa podem consultar o projeto; apenas o proprietário pode editá-lo ou eliminá-lo.
 - Cada projeto pertence a uma única equipa, conforme decisão de planeamento para a Ficha 03.
+- A interface não repete uma operação enquanto o pedido está em curso e atualiza o detalhe/listagem com os dados confirmados pela API.
 
 ### US09 — Gerir e filtrar tarefas
 
@@ -168,6 +169,7 @@ Como ainda não foram clarificados todos os detalhes funcionais, algumas histór
 - É possível filtrar as tarefas de um projeto por estado e/ou prioridade.
 - Apenas membros da equipa do projeto podem consultar e gerir as tarefas.
 - A interface pede confirmação antes da eliminação; a eliminação de tarefas com comentários ou atribuições é recusada para preservar os registos dependentes.
+- A interface não repete submissões enquanto o pedido está em curso e apresenta a tarefa devolvida pela API sem criar registos locais duplicados.
 
 ### US10 — Gerir responsáveis de tarefas
 
@@ -183,8 +185,11 @@ Como ainda não foram clarificados todos os detalhes funcionais, algumas histór
 
 - Uma tarefa pode ter mais do que um responsável.
 - Uma atribuição existente não é duplicada.
+- O Backend confirma que o utilizador existe e pertence à equipa do projeto; utilizadores inexistentes ou não elegíveis não são associados.
+- Repetir um pedido de associação já existente mantém uma única atribuição.
 - É possível consultar os responsáveis e remover uma atribuição.
 - Apenas membros da equipa do projeto são elegíveis; membros podem consultar e gerir atribuições.
+- A interface evita repetir operações de atribuição enquanto estão em curso e atualiza a lista a partir da resposta confirmada da API.
 
 ### US11 — Comentar tarefas
 
@@ -200,8 +205,10 @@ Como ainda não foram clarificados todos os detalhes funcionais, algumas histór
 
 - Um comentário fica associado à tarefa, ao utilizador autenticado que o escreveu e à data de criação.
 - A listagem apresenta autor e data de cada comentário.
+- O conteúdo tem entre 1 e 2000 caracteres e não pode conter apenas espaços.
 - O cliente não pode indicar ou falsificar o autor ou a data de criação.
 - Apenas membros da equipa do projeto podem consultar e adicionar comentários.
+- A interface impede submissões repetidas enquanto o pedido está em curso e apresenta o comentário criado pela API sem duplicá-lo na lista.
 
 ### US12 — Consultar o painel inicial
 
@@ -217,7 +224,7 @@ Como ainda não foram clarificados todos os detalhes funcionais, algumas histór
 
 - O painel apresenta apenas projetos acessíveis ao utilizador conforme a política aprovada.
 - Apresenta contagens para `TODO`, `IN_PROGRESS` e `DONE`, incluindo zero quando não existem tarefas nesse estado.
-- O wireframe propõe agrupar as contagens por projeto; confirmar esse agrupamento antes da implementação.
+- As contagens por estado são agrupadas por projeto e incluem todas as tarefas acessíveis, sem serem reduzidas pelos filtros ativos da listagem.
 - A seleção de um projeto abre o respetivo detalhe.
 
 ## 3. Funcionalidades fora do MVP

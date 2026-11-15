@@ -172,6 +172,42 @@ function validateTaskText(
   return true
 }
 
+function parseCommentContent(value: unknown, response: Response): string | null {
+  if (!isRecord(value)) {
+    validationError(response, 'body', 'O conteúdo do comentário é obrigatório.')
+    return null
+  }
+  if (Object.keys(value).some((key) => key !== 'content')) {
+    validationError(
+      response,
+      'body',
+      'O pedido só pode incluir o conteúdo do comentário.',
+    )
+    return null
+  }
+  if (typeof value.content !== 'string') {
+    validationError(response, 'content', 'O conteúdo do comentário tem de ser texto.')
+    return null
+  }
+  if (!value.content.trim()) {
+    validationError(
+      response,
+      'content',
+      'O conteúdo do comentário não pode conter apenas espaços.',
+    )
+    return null
+  }
+  if (Array.from(value.content).length > 2000) {
+    validationError(
+      response,
+      'content',
+      'O conteúdo do comentário deve ter entre 1 e 2000 caracteres.',
+    )
+    return null
+  }
+  return value.content.trim()
+}
+
 function sendNotFound(response: Response): void {
   response.status(404).json({
     code: 'NOT_FOUND',
@@ -833,6 +869,14 @@ export function createDomainRouter(database: PrismaClient): Router {
           sendNotFound(response)
           return
         }
+        const assignee = await database.user.findUnique({
+          where: { id: userId },
+          select: { id: true },
+        })
+        if (!assignee) {
+          sendNotFound(response)
+          return
+        }
         const eligibleMembership = await database.teamMembership.findUnique({
           where: {
             teamId_userId: {
@@ -842,7 +886,11 @@ export function createDomainRouter(database: PrismaClient): Router {
           },
         })
         if (!eligibleMembership) {
-          sendNotFound(response)
+          validationError(
+            response,
+            'userId',
+            'O utilizador não pertence à equipa do projeto e não pode ser atribuído.',
+          )
           return
         }
         await database.taskAssignment.upsert({
@@ -930,20 +978,15 @@ export function createDomainRouter(database: PrismaClient): Router {
           sendNotFound(response)
           return
         }
-        if (
-          !isRecord(request.body) ||
-          Object.keys(request.body).some((key) => key !== 'content') ||
-          typeof request.body.content !== 'string' ||
-          !request.body.content.trim()
-        ) {
-          validationError(response, 'body', 'O conteúdo do comentário é obrigatório.')
+        const content = parseCommentContent(request.body, response)
+        if (content === null) {
           return
         }
         const comment = await database.comment.create({
           data: {
             taskId: result.task.id,
             authorId: user.id,
-            content: request.body.content.trim(),
+            content,
           },
           include: {
             author: { select: { id: true, name: true, email: true } },

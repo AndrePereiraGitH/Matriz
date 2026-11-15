@@ -52,13 +52,18 @@ Nomes de projetos e títulos de tarefas são obrigatórios na criação, não po
 
 Para evitar perda de informação ou registos órfãos, eliminar um projeto com tarefas associadas e eliminar uma tarefa com comentários ou atribuições associadas são operações recusadas. A aplicação apresenta o motivo ao utilizador; as chaves estrangeiras também impedem a eliminação na base de dados.
 
+O conteúdo de um comentário é obrigatório, deve ter entre 1 e 2000 caracteres e não pode ser composto apenas por espaços. O autor e a data de criação são definidos pelo sistema.
+
+A interface deve impedir a repetição de uma operação de escrita enquanto o pedido correspondente estiver em curso. Listagens e detalhes são atualizados apenas após confirmação da API, sem acrescentar registos duplicados; em caso de falha, os dados introduzidos no formulário são preservados.
+
+As contagens de tarefas são agrupadas por projeto e calculadas sobre todas as tarefas do projeto acessível, independentemente dos filtros aplicados à listagem. Após criar, editar ou eliminar uma tarefa, listagem, filtros e contagens devem refletir os dados atuais.
+
 ### 3.1. Regras e detalhes por esclarecer
 
 Os seguintes comportamentos continuam por esclarecer:
 
 - A edição de um projeto pode transferi-lo para outra equipa?
 - Um utilizador pode pertencer a várias equipas?
-- As contagens de tarefas por estado são globais no painel ou agrupadas por projeto?
 - As transições entre estados de tarefa são livres ou sujeitas a regras?
 - O progresso do projeto é representado apenas por contagens por estado ou requer outro indicador?
 
@@ -104,6 +109,6 @@ O registo público e a recuperação de palavra-passe são extensões opcionais 
 
 ## 8. Estado da especificação
 
-Este documento consolida o âmbito inicial com a Ficha 03. A autorização, elegibilidade de responsáveis e política restritiva de eliminação descritas na secção 3 foram aprovadas para a implementação; pertença a múltiplas equipas, transferência de projetos e agregação das contagens permanecem pendentes.
+Este documento consolida o âmbito inicial com a Ficha 03. A autorização, elegibilidade de responsáveis, política restritiva de eliminação e agregação das contagens por projeto descritas na secção 3 foram aprovadas para a implementação; pertença a múltiplas equipas e transferência de projetos permanecem pendentes.
 
 O contrato, o modelo de dados e o plano de implementação devem ser mantidos alinhados com estas distinções entre âmbito confirmado e regras por validar.

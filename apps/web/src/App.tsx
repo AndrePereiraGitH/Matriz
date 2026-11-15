@@ -43,6 +43,25 @@ interface Task {
   priority: TaskPriority
 }
 
+interface TaskUser {
+  id: string
+  name: string
+  email: string
+}
+
+interface TaskAssignment {
+  user: TaskUser
+  assignedAt: string
+}
+
+interface TaskComment {
+  id: string
+  taskId: string
+  author: TaskUser
+  content: string
+  createdAt: string
+}
+
 interface ApiError {
   code: string
   message: string
@@ -95,14 +114,24 @@ function App() {
   const [sessionMessage, setSessionMessage] = useState<string | null>(null)
   const [projectMessage, setProjectMessage] = useState<string | null>(null)
   const [taskMessage, setTaskMessage] = useState<string | null>(null)
+  const [assignmentMessage, setAssignmentMessage] = useState<string | null>(null)
   const [projects, setProjects] = useState<Project[]>([])
   const [projectTaskCounts, setProjectTaskCounts] = useState<
     Record<string, Record<TaskStatus, number>>
   >({})
   const [tasks, setTasks] = useState<Task[]>([])
+  const [eligibleAssignees, setEligibleAssignees] = useState<TaskUser[]>([])
+  const [taskAssignees, setTaskAssignees] = useState<TaskAssignment[]>([])
+  const [taskComments, setTaskComments] = useState<TaskComment[]>([])
   const [teams, setTeams] = useState<Team[]>([])
   const [projectsLoading, setProjectsLoading] = useState(false)
   const [tasksLoading, setTasksLoading] = useState(false)
+  const [assigneesLoading, setAssigneesLoading] = useState(false)
+  const [commentsLoading, setCommentsLoading] = useState(false)
+  const [commentMutationInProgress, setCommentMutationInProgress] =
+    useState(false)
+  const [assigneeMutationInProgress, setAssigneeMutationInProgress] =
+    useState(false)
   const [selectedProject, setSelectedProject] = useState<Project | null>(null)
   const [selectedTask, setSelectedTask] = useState<Task | null>(null)
   const [projectView, setProjectView] = useState<ProjectView>('list')
@@ -116,9 +145,25 @@ function App() {
   const [taskDescription, setTaskDescription] = useState('')
   const [taskStatus, setTaskStatus] = useState<TaskStatus>('TODO')
   const [taskPriority, setTaskPriority] = useState<TaskPriority>('MEDIUM')
+  const [assigneeToAdd, setAssigneeToAdd] = useState('')
+  const [commentContent, setCommentContent] = useState('')
+  const [commentMessage, setCommentMessage] = useState<string | null>(null)
   const [taskStatusFilter, setTaskStatusFilter] = useState<TaskStatus | ''>('')
   const [taskPriorityFilter, setTaskPriorityFilter] = useState<TaskPriority | ''>('')
   const sessionCheckInProgress = useRef(false)
+  const activeMutations = useRef(new Set<string>())
+
+  function beginMutation(key: string): boolean {
+    if (activeMutations.current.has(key)) {
+      return false
+    }
+    activeMutations.current.add(key)
+    return true
+  }
+
+  function endMutation(key: string): void {
+    activeMutations.current.delete(key)
+  }
 
   const clearSession = useCallback((message: string) => {
     setUser(null)
@@ -127,6 +172,9 @@ function App() {
     setProjects([])
     setProjectTaskCounts({})
     setTasks([])
+    setEligibleAssignees([])
+    setTaskAssignees([])
+    setTaskComments([])
     setTeams([])
     setSelectedProject(null)
     setSelectedTask(null)
@@ -203,7 +251,7 @@ function App() {
 
   async function sendCsrfMutation(
     url: string,
-    method: 'POST' | 'PATCH' | 'DELETE',
+    method: 'POST' | 'PUT' | 'PATCH' | 'DELETE',
     csrf: string,
     body?: Record<string, string | null>,
   ): Promise<Response> {
@@ -338,6 +386,86 @@ function App() {
     [clearSession],
   )
 
+  const loadTaskAssignees = useCallback(
+    async (taskId: string): Promise<boolean> => {
+      setAssigneesLoading(true)
+      setAssignmentMessage(null)
+      try {
+        const [eligibleResponse, assignmentsResponse] = await Promise.all([
+          fetch(`${API_BASE}/tasks/${taskId}/eligible-assignees`, {
+            credentials: 'include',
+          }),
+          fetch(`${API_BASE}/tasks/${taskId}/assignees`, {
+            credentials: 'include',
+          }),
+        ])
+        for (const response of [eligibleResponse, assignmentsResponse]) {
+          if (!response.ok) {
+            const error = await readError(response)
+            if (response.status === 401) {
+              clearSession(sessionExpiredMessage(error))
+            } else {
+              setAssignmentMessage(error.message)
+            }
+            return false
+          }
+        }
+
+        const [eligible, assigned] = await Promise.all([
+          eligibleResponse.json() as Promise<TaskUser[]>,
+          assignmentsResponse.json() as Promise<TaskAssignment[]>,
+        ])
+        setEligibleAssignees(eligible)
+        setTaskAssignees(assigned)
+        setAssigneeToAdd(
+          eligible.find(
+            ({ id }) =>
+              !assigned.some((assignment) => assignment.user.id === id),
+          )?.id ?? '',
+        )
+        return true
+      } catch {
+        setAssignmentMessage(
+          'Não foi possível carregar os responsáveis. Verifique a ligação e tente novamente.',
+        )
+        return false
+      } finally {
+        setAssigneesLoading(false)
+      }
+    },
+    [clearSession],
+  )
+
+  const loadTaskComments = useCallback(
+    async (taskId: string) => {
+      setCommentsLoading(true)
+      setCommentMessage(null)
+      try {
+        const response = await fetch(
+          `${API_BASE}/tasks/${taskId}/comments`,
+          { credentials: 'include' },
+        )
+        if (!response.ok) {
+          const error = await readError(response)
+          if (response.status === 401) {
+            clearSession(sessionExpiredMessage(error))
+          } else {
+            setCommentMessage(error.message)
+          }
+          return
+        }
+        setTaskComments((await response.json()) as TaskComment[])
+      } catch {
+        setCommentMessage(
+          'Não foi possível carregar os comentários. Verifique a ligação e tente novamente.',
+        )
+      } finally {
+        setCommentsLoading(false)
+      }
+    },
+    [clearSession],
+  )
+
   const loadTeams = useCallback(async () => {
     try {
       const response = await fetch(`${API_BASE}/teams`, {
@@ -403,6 +531,9 @@ function App() {
 
   async function handleLogin(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    if (!beginMutation('auth')) {
+      return
+    }
     setIsSubmitting(true)
     setErrorMessage(null)
     setSessionMessage(null)
@@ -437,6 +568,7 @@ function App() {
       )
     } finally {
       setIsSubmitting(false)
+      endMutation('auth')
     }
   }
 
@@ -446,6 +578,9 @@ function App() {
       return
     }
 
+    if (!beginMutation('auth')) {
+      return
+    }
     setIsSubmitting(true)
     setErrorMessage(null)
     try {
@@ -468,7 +603,12 @@ function App() {
       setCsrfToken(null)
       setExpiresAt(null)
       setProjects([])
+      setProjectTaskCounts({})
       setTeams([])
+      setTasks([])
+      setEligibleAssignees([])
+      setTaskAssignees([])
+      setTaskComments([])
       setSelectedProject(null)
       setSessionMessage(null)
     } catch {
@@ -477,11 +617,25 @@ function App() {
       )
     } finally {
       setIsSubmitting(false)
+      endMutation('auth')
     }
   }
 
   function startCreateProject() {
     setSelectedProject(null)
+    setSelectedTask(null)
+    setTasks([])
+    setTaskAssignees([])
+    setEligibleAssignees([])
+    setTaskComments([])
+    setTaskView('list')
+    setTaskMessage(null)
+    setAssignmentMessage(null)
+    setCommentMessage(null)
+    setCommentContent('')
+    setAssigneeToAdd('')
+    setTaskStatusFilter('')
+    setTaskPriorityFilter('')
     setProjectName('')
     setProjectDescription('')
     setProjectTeamId(teams[0]?.id ?? '')
@@ -549,6 +703,9 @@ function App() {
       return
     }
 
+    if (!beginMutation('project')) {
+      return
+    }
     setIsSubmitting(true)
     setProjectMessage(null)
     const isEditing = projectView === 'edit' && selectedProject
@@ -604,6 +761,7 @@ function App() {
       )
     } finally {
       setIsSubmitting(false)
+      endMutation('project')
     }
   }
 
@@ -622,6 +780,9 @@ function App() {
       return
     }
     setSelectedTask(null)
+    setTaskComments([])
+    setCommentContent('')
+    setCommentMessage(null)
     setTaskMessage(null)
     setTaskView('detail')
     try {
@@ -652,6 +813,12 @@ function App() {
         return
       }
       setSelectedTask((await response.json()) as Task)
+      setTaskAssignees([])
+      setEligibleAssignees([])
+      await Promise.all([
+        loadTaskAssignees(taskId),
+        loadTaskComments(taskId),
+      ])
     } catch {
       setTaskMessage(
         'Não foi possível carregar a tarefa. Verifique a ligação e tente novamente.',
@@ -672,6 +839,172 @@ function App() {
     setTaskView('edit')
   }
 
+  async function handleAssignTaskUser() {
+    if (!selectedTask || !assigneeToAdd || !csrfToken) {
+      if (!csrfToken) {
+        await checkSession(true)
+      }
+      return
+    }
+
+    if (!beginMutation('assignee')) {
+      return
+    }
+    setAssigneeMutationInProgress(true)
+    setAssignmentMessage(null)
+    try {
+      const response = await sendCsrfMutation(
+        `${API_BASE}/tasks/${selectedTask.id}/assignees/${assigneeToAdd}`,
+        'PUT',
+        csrfToken,
+      )
+      if (!response.ok) {
+        const error = await readError(response)
+        if (response.status === 401) {
+          clearSession(sessionExpiredMessage(error))
+        } else if (response.status === 403) {
+          setAssignmentMessage(
+            error.code === 'CSRF_VALIDATION_FAILED'
+              ? 'A validação de segurança falhou. Atualize a sessão e tente novamente.'
+              : 'Não tem autorização para gerir responsáveis nesta tarefa.',
+          )
+        } else if (response.status === 404) {
+          setAssignmentMessage(
+            'O utilizador selecionado já não é elegível para esta tarefa.',
+          )
+        } else {
+          setAssignmentMessage(error.message)
+        }
+        return
+      }
+      if (!(await loadTaskAssignees(selectedTask.id))) {
+        return
+      }
+      setAssignmentMessage('Responsável associado com sucesso.')
+    } catch {
+      setAssignmentMessage(
+        'Não foi possível associar o responsável. Verifique a ligação e tente novamente.',
+      )
+    } finally {
+      setAssigneeMutationInProgress(false)
+      endMutation('assignee')
+    }
+  }
+
+  async function handleRemoveTaskAssignee(userId: string) {
+    if (!selectedTask || !csrfToken) {
+      if (!csrfToken) {
+        await checkSession(true)
+      }
+      return
+    }
+
+    if (!beginMutation('assignee')) {
+      return
+    }
+    setAssigneeMutationInProgress(true)
+    setAssignmentMessage(null)
+    try {
+      const response = await sendCsrfMutation(
+        `${API_BASE}/tasks/${selectedTask.id}/assignees/${userId}`,
+        'DELETE',
+        csrfToken,
+      )
+      if (!response.ok) {
+        const error = await readError(response)
+        if (response.status === 401) {
+          clearSession(sessionExpiredMessage(error))
+        } else if (response.status === 403) {
+          setAssignmentMessage(
+            error.code === 'CSRF_VALIDATION_FAILED'
+              ? 'A validação de segurança falhou. Atualize a sessão e tente novamente.'
+              : 'Não tem autorização para gerir responsáveis nesta tarefa.',
+          )
+        } else if (response.status === 404) {
+          setAssignmentMessage('A tarefa ou a atribuição já não está disponível.')
+        } else {
+          setAssignmentMessage(error.message)
+        }
+        return
+      }
+      if (!(await loadTaskAssignees(selectedTask.id))) {
+        return
+      }
+      setAssignmentMessage('Atribuição removida com sucesso.')
+    } catch {
+      setAssignmentMessage(
+        'Não foi possível remover a atribuição. Verifique a ligação e tente novamente.',
+      )
+    } finally {
+      setAssigneeMutationInProgress(false)
+      endMutation('assignee')
+    }
+  }
+
+  async function handleCommentSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    if (!selectedTask) {
+      return
+    }
+    if (!commentContent.trim()) {
+      setCommentMessage('O conteúdo do comentário não pode conter apenas espaços.')
+      return
+    }
+    if (!csrfToken) {
+      await checkSession(true)
+      return
+    }
+
+    if (!beginMutation('comment')) {
+      return
+    }
+    setCommentMutationInProgress(true)
+    setCommentMessage(null)
+    try {
+      const response = await sendCsrfMutation(
+        `${API_BASE}/tasks/${selectedTask.id}/comments`,
+        'POST',
+        csrfToken,
+        { content: commentContent },
+      )
+      if (!response.ok) {
+        const error = await readError(response)
+        if (response.status === 401) {
+          clearSession(sessionExpiredMessage(error))
+        } else if (response.status === 403) {
+          setCommentMessage(
+            error.code === 'CSRF_VALIDATION_FAILED'
+              ? 'A validação de segurança falhou. Atualize a sessão e tente novamente.'
+              : 'Não tem autorização para comentar nesta tarefa.',
+          )
+        } else if (response.status === 404) {
+          setCommentMessage(
+            'Esta tarefa já não está disponível ou não tem autorização para a consultar.',
+          )
+        } else {
+          setCommentMessage(error.message)
+        }
+        return
+      }
+
+      const comment = (await response.json()) as TaskComment
+      setTaskComments((comments) =>
+        comments.some(({ id }) => id === comment.id)
+          ? comments
+          : [...comments, comment],
+      )
+      setCommentContent('')
+      setCommentMessage('Comentário adicionado com sucesso.')
+    } catch {
+      setCommentMessage(
+        'Não foi possível adicionar o comentário. Verifique a ligação e tente novamente.',
+      )
+    } finally {
+      setCommentMutationInProgress(false)
+      endMutation('comment')
+    }
+  }
+
   async function handleTaskSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!selectedProject) {
@@ -682,6 +1015,9 @@ function App() {
       return
     }
 
+    if (!beginMutation('task')) {
+      return
+    }
     setIsSubmitting(true)
     setTaskMessage(null)
     const isEditing = taskView === 'edit' && selectedTask
@@ -727,12 +1063,20 @@ function App() {
       const savedTask = (await response.json()) as Task
       setSelectedTask(savedTask)
       setTaskView('detail')
-      await loadTasks(
-        selectedProject.id,
-        taskStatusFilter,
-        taskPriorityFilter,
-      )
-      await loadProjects(activeSearch)
+      await Promise.all([
+        loadTasks(
+          selectedProject.id,
+          taskStatusFilter,
+          taskPriorityFilter,
+        ),
+        loadProjects(activeSearch),
+        ...(isEditing
+          ? []
+          : [
+              loadTaskAssignees(savedTask.id),
+              loadTaskComments(savedTask.id),
+            ]),
+      ])
       setTaskMessage(
         isEditing ? 'Tarefa atualizada com sucesso.' : 'Tarefa criada com sucesso.',
       )
@@ -742,6 +1086,7 @@ function App() {
       )
     } finally {
       setIsSubmitting(false)
+      endMutation('task')
     }
   }
 
@@ -760,6 +1105,9 @@ function App() {
       return
     }
 
+    if (!beginMutation('task')) {
+      return
+    }
     setIsSubmitting(true)
     setTaskMessage(null)
     try {
@@ -818,6 +1166,7 @@ function App() {
       )
     } finally {
       setIsSubmitting(false)
+      endMutation('task')
     }
   }
 
@@ -836,6 +1185,9 @@ function App() {
       return
     }
 
+    if (!beginMutation('project')) {
+      return
+    }
     setIsSubmitting(true)
     setProjectMessage(null)
     try {
@@ -884,6 +1236,7 @@ function App() {
       )
     } finally {
       setIsSubmitting(false)
+      endMutation('project')
     }
   }
 
@@ -1611,6 +1964,239 @@ function App() {
                                 </dd>
                               </div>
                             </dl>
+                            <section
+                              className="assignee-section"
+                              aria-labelledby="assignees-title"
+                            >
+                              <h3 id="assignees-title">Responsáveis</h3>
+                              {assignmentMessage && (
+                                <p
+                                  className={`message ${
+                                    assignmentMessage.includes('sucesso')
+                                      ? 'message-success'
+                                      : 'message-error'
+                                  }`}
+                                  role={
+                                    assignmentMessage.includes('sucesso')
+                                      ? 'status'
+                                      : 'alert'
+                                  }
+                                >
+                                  {assignmentMessage}
+                                </p>
+                              )}
+                              {assigneesLoading ? (
+                                <p className="empty-state" role="status">
+                                  A carregar responsáveis…
+                                </p>
+                              ) : (
+                                <>
+                                  {taskAssignees.length === 0 ? (
+                                    <p className="assignee-empty">
+                                      Ainda não existem responsáveis associados.
+                                    </p>
+                                  ) : (
+                                    <ul className="assignee-list">
+                                      {taskAssignees.map(({ user: assignee }) => (
+                                        <li key={assignee.id}>
+                                          <span>
+                                            {assignee.name}
+                                            <span className="assignee-email">
+                                              {assignee.email}
+                                            </span>
+                                          </span>
+                                          <button
+                                            className="text-button"
+                                            type="button"
+                                            onClick={() =>
+                                              void handleRemoveTaskAssignee(
+                                                assignee.id,
+                                              )
+                                            }
+                                            disabled={
+                                              assigneeMutationInProgress
+                                            }
+                                            aria-label={`Remover ${assignee.name} dos responsáveis`}
+                                          >
+                                            Remover
+                                          </button>
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  )}
+                                  <form
+                                    className="assignee-form"
+                                    onSubmit={(event) => {
+                                      event.preventDefault()
+                                      void handleAssignTaskUser()
+                                    }}
+                                  >
+                                    <label htmlFor="task-assignee">
+                                      Adicionar responsável
+                                    </label>
+                                    <div className="assignee-controls">
+                                      <select
+                                        id="task-assignee"
+                                        value={assigneeToAdd}
+                                        onChange={(event) =>
+                                          setAssigneeToAdd(event.target.value)
+                                        }
+                                        disabled={
+                                          assigneeMutationInProgress ||
+                                          eligibleAssignees.every((eligible) =>
+                                            taskAssignees.some(
+                                              ({ user: assignee }) =>
+                                                assignee.id === eligible.id,
+                                            ),
+                                          )
+                                        }
+                                      >
+                                        {eligibleAssignees
+                                          .filter(
+                                            (eligible) =>
+                                              !taskAssignees.some(
+                                                ({ user: assignee }) =>
+                                                  assignee.id === eligible.id,
+                                              ),
+                                          )
+                                          .map((eligible) => (
+                                            <option
+                                              key={eligible.id}
+                                              value={eligible.id}
+                                            >
+                                              {eligible.name} ({eligible.email})
+                                            </option>
+                                          ))}
+                                      </select>
+                                      <button
+                                        className="secondary-button"
+                                        type="submit"
+                                        disabled={
+                                          !assigneeToAdd ||
+                                          assigneeMutationInProgress ||
+                                          eligibleAssignees.every((eligible) =>
+                                            taskAssignees.some(
+                                              ({ user: assignee }) =>
+                                                assignee.id === eligible.id,
+                                            ),
+                                          )
+                                        }
+                                      >
+                                        Associar
+                                      </button>
+                                    </div>
+                                    {eligibleAssignees.length === 0 && (
+                                      <p className="assignee-empty">
+                                        Não existem membros elegíveis nesta equipa.
+                                      </p>
+                                    )}
+                                    {eligibleAssignees.length > 0 &&
+                                      eligibleAssignees.every((eligible) =>
+                                        taskAssignees.some(
+                                          ({ user: assignee }) =>
+                                            assignee.id === eligible.id,
+                                        ),
+                                      ) && (
+                                        <p className="assignee-empty">
+                                          Todos os membros elegíveis já estão
+                                          associados.
+                                        </p>
+                                      )}
+                                  </form>
+                                </>
+                              )}
+                            </section>
+                            <section
+                              className="comment-section"
+                              aria-labelledby="comments-title"
+                            >
+                              <h3 id="comments-title">Comentários</h3>
+                              {commentMessage && (
+                                <p
+                                  className={`message ${
+                                    commentMessage.includes('sucesso')
+                                      ? 'message-success'
+                                      : 'message-error'
+                                  }`}
+                                  role={
+                                    commentMessage.includes('sucesso')
+                                      ? 'status'
+                                      : 'alert'
+                                  }
+                                >
+                                  {commentMessage}
+                                </p>
+                              )}
+                              {commentsLoading ? (
+                                <p className="empty-state" role="status">
+                                  A carregar comentários…
+                                </p>
+                              ) : taskComments.length === 0 ? (
+                                <p className="comment-empty">
+                                  Ainda não existem comentários nesta tarefa.
+                                </p>
+                              ) : (
+                                <ul className="comment-list">
+                                  {taskComments.map((comment) => (
+                                    <li key={comment.id}>
+                                      <div className="comment-meta">
+                                        <span>{comment.author.name}</span>
+                                        <time dateTime={comment.createdAt}>
+                                          {new Date(
+                                            comment.createdAt,
+                                          ).toLocaleString('pt-PT')}
+                                        </time>
+                                      </div>
+                                      <p className="comment-content">
+                                        {comment.content}
+                                      </p>
+                                    </li>
+                                  ))}
+                                </ul>
+                              )}
+                              <form
+                                className="comment-form"
+                                onSubmit={(event) =>
+                                  void handleCommentSubmit(event)
+                                }
+                              >
+                                <label htmlFor="task-comment">
+                                  Adicionar comentário
+                                </label>
+                                <textarea
+                                  id="task-comment"
+                                  value={commentContent}
+                                  onChange={(event) =>
+                                    setCommentContent(
+                                      Array.from(event.target.value)
+                                        .slice(0, 2000)
+                                        .join(''),
+                                    )
+                                  }
+                                  required
+                                  rows={4}
+                                  aria-describedby="comment-hint"
+                                  disabled={commentMutationInProgress}
+                                />
+                                <p id="comment-hint" className="field-hint">
+                                  Entre 1 e 2000 caracteres; não pode conter
+                                  apenas espaços.
+                                </p>
+                                <button
+                                  className="primary-button"
+                                  type="submit"
+                                  disabled={
+                                    commentMutationInProgress ||
+                                    !commentContent.trim() ||
+                                    Array.from(commentContent).length > 2000
+                                  }
+                                >
+                                  {commentMutationInProgress
+                                    ? 'A enviar…'
+                                    : 'Comentar'}
+                                </button>
+                              </form>
+                            </section>
                           </article>
                         )}
                       </>
