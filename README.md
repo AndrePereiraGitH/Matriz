@@ -42,6 +42,8 @@ O âmbito funcional consolidado está em [docs/requirements.md](docs/requirement
 | `docs/architecture-pack.md` | Revisão cruzada do Architecture Pack |
 | `docs/implementation-plan.md` | Incrementos, critérios de aceitação, verificações e estado |
 | `docs/verification.md` | Resultados e evidências da verificação do MVP (Exercício 8) |
+| `docs/test-plan.md` | Plano de testes, estratégia e evidências de execução (unitários, integração e E2E) |
+| `docs/code-and-security-review.md` | Relatório de Code Review, análise de segurança IDOR / Broken Access Control e findings |
 | `docs/exercicio-1-prompt-engineering.md` | Registo do Exercício 1 |
 | `docs/exercicio-2-análise-de-requisitos-com-AI.md` | Registo do Exercício 2 |
 | `docs/exercicio-3-User-Stories-and-Acceptance-Criteria.md` | Registo do Exercício 3 |
@@ -65,6 +67,8 @@ As tarefas têm título obrigatório entre 3 e 150 caracteres, descrição opcio
 
 No detalhe da tarefa, a interface permite consultar os responsáveis atuais, associar vários membros elegíveis da equipa e remover cada atribuição individualmente. O Backend confirma a existência do utilizador e a pertença à equipa do projeto; repetir uma associação é idempotente e não cria duplicados. A interface obtém a lista de elegíveis e os responsáveis atuais da API e atualiza os dados após cada alteração.
 
+A regra de validação do título de tarefas encontra-se isolada na função pura `validateTaskTitle` (`apps/api/src/domain/task-title.ts`). A estratégia de qualidade cobre testes unitários focados (`apps/api/test/task-title.test.ts`), testes de integração com base de dados SQLite isolada para criação, consulta e controlo de acessos (`apps/api/test/task-integration.test.ts`), e testes End-to-End na interface web com Playwright (`e2e/task-lifecycle.spec.ts`). A revisão de código e a análise de segurança contra vulnerabilidades IDOR / Broken Access Control encontram-se registadas em [docs/code-and-security-review.md](docs/code-and-security-review.md).
+
 ## 6. Desenvolvimento local
 
 Requer Node.js 22.12 ou superior e npm.
@@ -83,10 +87,21 @@ O comando de desenvolvimento inicia a interface Vite em `http://localhost:5173` 
 npm run build
 npm run typecheck
 npm test
+npm run test:e2e
 npm run lint
 ```
 
-O runner de testes escolhido é Vitest.
+Os runners de teste e análise estática configurados são:
+- **Vitest (`npm test`):** Executa os testes unitários e de integração (`task-title.test.ts`, `task-integration.test.ts`, `auth.test.ts`, `database.test.ts`, `parse-env.test.ts`) utilizando bases de dados SQLite efémeras criadas dinamicamente. Para executar testes focados:
+  ```sh
+  npm test -- apps/api/test/task-title.test.ts
+  npm test -- apps/api/test/task-integration.test.ts
+  ```
+- **Playwright (`npm run test:e2e`):** Executa testes ponta a ponta (E2E) simulando o percurso real do utilizador no navegador Chromium (modo *headless*), com orquestração automática dos servidores backend e frontend via `webServer`:
+  ```sh
+  npm run test:e2e
+  ```
+- **Oxlint (`npm run lint`):** Análise estática rápida executada nos dois workspaces (`apps/web` e `apps/api`).
 
 A API carrega `PORT`, `DATABASE_URL` e `WEB_ORIGIN` a partir de `apps/api/.env`; a seed também lê as palavras-passe demo desse ficheiro. O exemplo usa uma base SQLite local (`file:../dev.db`, resolvida como `apps/api/dev.db`) e valores fictícios, não credenciais reais. O ficheiro `.env` local e os ficheiros de base de dados são ignorados pelo Git. O servidor só começa a escutar depois de estabelecer ligação à base de dados.
 

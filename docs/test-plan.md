@@ -86,3 +86,100 @@ Corresponde a T06. Fonte: acesso reservado aos membros da equipa, US09 e o crit�
 - C3 espera `404` para não revelar a existência da tarefa. A ambiguidade com o `403` também declarado no OpenAPI fica registada na secção 2 e não é tratada como um requisito novo.
 - Não se infere pertença a várias equipas, transferência de projeto, regras de transição de estado nem outro indicador de progresso.
 - Os testes de integração já existentes em `apps/api/test/auth.test.ts` podem cobrir parte destes resultados. Este plano não os altera nem os dá como suficientes para o E2E, que ainda não tem runner no repositório.
+
+## 5. Execução dos testes unitários (Exercício 2)
+
+No âmbito do Exercício 2, a regra de negócio da validação do título de uma tarefa foi isolada na função pura `validateTaskTitle` em `apps/api/src/domain/task-title.ts` e integrada na validação de tarefas em `apps/api/src/domain/routes.ts`. Os testes unitários foram implementados em `apps/api/test/task-title.test.ts` utilizando Vitest, cobrindo o caso válido, caso inválido e valores-limite de acordo com `docs/requirements.md` (secção 3), `docs/user-stories.md` (US09) e `docs/constraints.md` (secção 2).
+
+### 5.1. Casos de teste e asserções
+
+| ID | Descrição do caso | Entrada | Resultado esperado | Resultado observado |
+|---|---|---|---|---|
+| U01 | Caso válido com espaços envolventes | `"  Preparar relatório  "` | `{ ok: true, title: "Preparar relatório" }` (apara espaços e aprova) | Passou |
+| U02 | Caso inválido (apenas espaços) | `"   "` | `{ ok: false, field: "title", message: "O título da tarefa não pode conter apenas espaços." }` | Passou |
+| U03 | Valor-limite inferior válido (3 caracteres) | `"abc"` | `{ ok: true, title: "abc" }` | Passou |
+| U04 | Valor-limite inferior inválido (2 caracteres) | `"ab"` | `{ ok: false, field: "title", message: "O título da tarefa deve ter entre 3 e 150 caracteres." }` | Passou |
+| U05 | Valor-limite superior válido (150 caracteres) | `"a".repeat(150)` | `{ ok: true, title: "a".repeat(150) }` | Passou |
+| U06 | Valor-limite superior inválido (151 caracteres) | `"a".repeat(151)` | `{ ok: false, field: "title", message: "O título da tarefa deve ter entre 3 e 150 caracteres." }` | Passou |
+
+### 5.2. Execução e validação
+
+Comando de execução:
+```sh
+npm test -- apps/api/test/task-title.test.ts
+```
+
+Resultado obtido:
+* Ficheiro de testes: `apps/api/test/task-title.test.ts`
+* Testes executados: 6 passados (100% de sucesso)
+* Duração: ~130ms
+
+As asserções confirmam estritamente os requisitos definidos para o MVP. O código de produção não foi alterado de forma artificial para obter testes verdes.
+
+## 6. Execução dos testes de integração (Exercício 3)
+
+No âmbito do Exercício 3, foram implementados testes de integração em `apps/api/test/task-integration.test.ts` para validar as rotas da API de tarefas e a sua persistência real em base de dados relacional (SQLite), executando sobre um ambiente controlado e isolado:
+
+1. **Ambiente isolado e ciclo de vida:** cada execução cria uma diretoria temporária (`mkdtemp`), executa as migrações Prisma (`prisma migrate deploy`), sementeia dados de teste (`seedDemoData`) com dois utilizadores e equipas distintas (`demo-team-a` e `demo-team-b`), e arranca o servidor Express numa porta efémera (`127.0.0.1:0`). No final (`afterAll`), o servidor é encerrado, a ligação Prisma desligada e a diretoria temporária eliminada.
+2. **Fluxo positivo com persistência:** criação de tarefa válida apenas com título, verificação do contrato HTTP `201`, consulta individual via `GET /api/v1/tasks/{taskId}` (`200`), consulta na listagem do projeto via `GET /api/v1/projects/{projectId}/tasks` (`200`), e validação direta na tabela `Task` do SQLite com `database.task.findUnique`.
+3. **Cenários negativos e permissões:** validação de título composto apenas por espaços (`422` com `VALIDATION_ERROR` e detalhe no campo `title`, sem persistência de registo), consulta de recurso inexistente (`404` com `NOT_FOUND`), acesso direto por identificador conhecido por membro de outra equipa (`404` com `NOT_FOUND` para não divulgar a existência do recurso) e consulta sem sessão (`401` com `UNAUTHENTICATED`).
+
+### 6.1. Casos de teste e asserções
+
+| ID | Descrição do caso | Entrada | Resultado esperado | Resultado observado |
+|---|---|---|---|---|
+| I01 | Criação de tarefa válida, consulta e persistência real | Sessão de membro (`demo-team-a`), `POST /api/v1/projects/{id}/tasks` com `{ "title": "Preparar relatório" }`, seguido de `GET /api/v1/tasks/{id}`, `GET /api/v1/projects/{id}/tasks` e query Prisma direta | `201` com `status: "TODO"`, `priority: "MEDIUM"`, `description: null`; `GET` devolve os mesmos dados (`200`); listagem contém o `id` (`200`); registo SQLite contém os campos persistidos | Passou |
+| I02 | Título inválido composto apenas por espaços | Sessão de membro, `POST /api/v1/projects/{id}/tasks` com `{ "title": "   " }` e CSRF | `422`, `code: "VALIDATION_ERROR"`, detalhe no campo `title`. Contagem de tarefas na BD não sofre alterações. | Passou |
+| I03 | Recurso inexistente | Sessão de membro, `GET /api/v1/tasks/non-existent-task-id` | `404`, `code: "NOT_FOUND"`, mensagem descritiva de recurso não encontrado | Passou |
+| I04 | Permissões entre equipas (acesso não autorizado) | Sessão de membro da Equipa B, `GET /api/v1/tasks/{taskIdEquipaA}` | `404`, `code: "NOT_FOUND"`, não revelando a existência da tarefa | Passou |
+| I05 | Pedido sem autenticação | `GET /api/v1/tasks/demo-task-a` sem cookie de sessão | `401`, `code: "UNAUTHENTICATED"` | Passou |
+
+### 6.2. Execução e validação
+
+Comando de execução:
+```sh
+npm test -- apps/api/test/task-integration.test.ts
+```
+
+Resultado obtido:
+* Ficheiro de testes: `apps/api/test/task-integration.test.ts`
+* Testes executados: 5 passados (100% de sucesso)
+* Duração: ~850ms
+
+A validação foi confirmada também na suíte completa (`npm test`), passando os 41 testes do repositório, com `typecheck`, `lint` e `build` limpos.
+
+## 7. Execução dos testes End-to-End (Exercício 4)
+
+No âmbito do Exercício 4, foi implementado o teste ponta a ponta (E2E) com Playwright em `e2e/task-lifecycle.spec.ts` para validar o percurso completo do utilizador na interface gráfica, cobrindo o cenário **T05** definido na secção 1 e o caso **C2** na perspetiva de frontend.
+
+### 7.1. Configuração e infraestrutura E2E
+* **Runner:** `@playwright/test` configurado em `playwright.config.ts`.
+* **Arranque e orquestração:** O bloco `webServer` inicializa automaticamente a API (`http://localhost:3000/api/v1/auth/me`) e a aplicação web (`http://localhost:5173`), assegurando disponibilidade antes do teste.
+* **Navegador e diagnóstico:** Execução no Chromium em modo *headless*. A captura de screenshots e traces está configurada estritamente para falhas (`screenshot: 'only-on-failure'`, `trace: 'retain-on-failure'`).
+* **Seletores e esperas:** Utilização de seletores semânticos e orientados a acessibilidade (`getByRole`, `getByLabel`, classes de componente `.project-card`, `.task-card`), sem recurso a esperas temporizadas fixas (`waitForTimeout`), tirando partido das asserções reativas do Playwright.
+
+### 7.2. Percurso funcional automatizado
+
+| Passo | Ação do utilizador | Seletor / Interação | Critério de aceitação verificado | Resultado |
+|---|---|---|---|---|
+| 1 | Autenticação | `input#email`, `input#password`, `button "Iniciar sessão"` com `ana.demo@example.test` | Acesso concedido, cabeçalho "Gestão de projetos" e utilizador visível | Passou |
+| 2 | Abrir projeto | `.project-card` ("Projeto de Demonstração A") -> botão "Consultar" | Transição para detalhe do projeto, secção "Tarefas" carregada | Passou |
+| 3 | Criar tarefa | Botão "Criar tarefa" -> formulário -> `input#task-title` ("Preparar relatório E2E...") -> botão "Criar tarefa" | Submissão bem-sucedida, mensagem de estado "Tarefa criada com sucesso." e detalhe da tarefa visível | Passou |
+| 4 | Verificação na listagem | Botão "← Voltar às tarefas" | O cartão `.task-card` com o novo título surge na listagem sem recarregar a página, com "Estado: Por fazer" e "Prioridade: Média" | Passou |
+
+### 7.3. Execução e validação
+
+Comando de execução:
+```sh
+npm run test:e2e
+```
+
+Resultado obtido:
+* **Ficheiro de testes:** `e2e/task-lifecycle.spec.ts`
+* **Testes executados:** 1 passado (100% de sucesso)
+* **Duração:** ~890ms de execução do teste (~3.3s incluindo arranque dos servidores)
+
+A suíte unitária/integração (`npm test`) mantém-se isolada e a passar com 41 testes com sucesso, e os comandos de verificação (`npm run typecheck`, `npm run lint` e `npm run build`) continuam sem erros.
+
+
+

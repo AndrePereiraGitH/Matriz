@@ -6,7 +6,8 @@ async function startServer() {
   await prisma.$connect()
   const app = createApp(prisma)
 
-  app.listen(env.port, '127.0.0.1', () => {
+  const host = process.env.HOST || '127.0.0.1'
+  app.listen(env.port, host, () => {
     console.log(`Matriz API listening on port ${env.port}`)
   })
 }

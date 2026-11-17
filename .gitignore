@@ -8,4 +8,6 @@ coverage/
 *.db-journal
 *.sqlite
 *.sqlite3
+test-results/
+playwright-report/
 .DS_Store

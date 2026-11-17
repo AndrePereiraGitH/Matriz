@@ -12,7 +12,8 @@
     "db:migrate": "prisma migrate dev --schema prisma/schema.prisma",
     "db:deploy": "prisma migrate deploy --schema prisma/schema.prisma",
     "db:status": "prisma migrate status --schema prisma/schema.prisma",
-    "db:seed": "tsx src/database/seed.ts"
+    "db:seed": "tsx src/database/seed.ts",
+    "lint": "oxlint"
   },
   "dependencies": {
     "@prisma/client": "^6.12.0",

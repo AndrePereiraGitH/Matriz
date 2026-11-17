@@ -9,10 +9,12 @@
     "dev": "concurrently -k -n api,web \"npm run dev -w @matriz/api\" \"npm run dev -w @matriz/web\"",
     "build": "npm run build --workspaces --if-present",
     "typecheck": "npm run typecheck --workspaces --if-present",
-    "test": "vitest run --passWithNoTests",
+    "test": "vitest run --passWithNoTests --exclude 'e2e/**'",
+    "test:e2e": "playwright test",
     "lint": "npm run lint --workspaces --if-present"
   },
   "devDependencies": {
+    "@playwright/test": "^1.65.1",
     "concurrently": "^10.0.7",
     "vitest": "^5.1.0"
   }
