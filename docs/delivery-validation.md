@@ -46,7 +46,7 @@ Para preparar a aplicação **Matriz** (versão candidata `v0.1.0-rc.2`) para en
 
 ## 3. Problemas Encontrados e Soluções Aplicadas
 
-Durante o desenvolvimento das Fichas 04 e 05, foram diagnosticados e resolvidos **8 problemas técnicos**:
+Durante o desenvolvimento das Fichas 04 e 05, foram diagnosticados e resolvidos **9 problemas técnicos**:
 
 | # | Problema Identificado | Causa Raiz | Solução Aplicada |
 |---|---|---|---|
@@ -58,6 +58,7 @@ Durante o desenvolvimento das Fichas 04 e 05, foram diagnosticados e resolvidos 
 | **6** | **Violação de *strict mode* no seletor Playwright em contentor** | `page.getByRole('status')` encontrava temporariamente 2 indicadores de carregamento (`A carregar responsáveis…` e `A carregar comentários…`) além da mensagem de sucesso. | Ajustado o seletor em `e2e/task-lifecycle.spec.ts` para `page.getByRole('status').filter({ hasText: 'Tarefa criada com sucesso.' })`. |
 | **7** | **Falha de `DATABASE_URL` no runner limpo do GitHub Actions** | `apps/api/.env` não está versionado no Git e `dotenv/config` apenas lia `.env` na raiz (`process.cwd()`) quando `npm test` corria da raiz. | Adicionado `cp apps/api/.env.example apps/api/.env` no job `verify` de `ci.yml` e configurado `apps/api/src/config/env.ts` para resolver `apps/api/.env` relativamente ao módulo. |
 | **8** | **Expressão inválida `secrets.*` num `if:` de step em `cd.yml`** | O GitHub Actions não permite usar o contexto `secrets` diretamente na cláusula `if:` de um step. | Movida a verificação para `if [ -n "$RENDER_DEPLOY_HOOK_URL" ]` no script shell através da variável injetada em `env:`. |
+| **9** | **Falha `"/apps/web/public": not found` no Docker build em CI e no Render** | O diretório `apps/web/public` estava vazio localmente; como o Git não versiona diretórios vazios, a pasta não existia nos clones limpos do GitHub Actions e do Render. | Removida a instrução desnecessária `COPY apps/web/public apps/web/public` de `apps/web/Dockerfile` e `Dockerfile`. |
 
 ---
 

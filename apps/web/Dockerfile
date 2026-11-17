@@ -13,7 +13,6 @@ RUN npm ci --ignore-scripts
 
 # Copy web source
 COPY apps/web/src apps/web/src
-COPY apps/web/public apps/web/public
 COPY apps/web/index.html apps/web/
 COPY apps/web/tsconfig.json apps/web/tsconfig.json
 COPY apps/web/tsconfig.app.json apps/web/tsconfig.app.json
