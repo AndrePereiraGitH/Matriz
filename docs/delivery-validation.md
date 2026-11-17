@@ -26,7 +26,7 @@ Registar a verificação global da preparação do projeto **Matriz** (versão c
 
 ## 3. Problemas Identificados e Correções Aplicadas (Troubleshooting)
 
-Durante a preparação e validação da entrega (Ficha 05), foram diagnosticados e corrigidos **6 problemas técnicos**:
+Durante a preparação e validação da entrega (Ficha 05), foram diagnosticados e corrigidos **7 problemas técnicos**:
 
 | # | Problema Identificado | Causa Raiz | Correção Aplicada |
 |---|---|---|---|
@@ -36,6 +36,7 @@ Durante a preparação e validação da entrega (Ficha 05), foram diagnosticados
 | **4** | **Conflito de porta `8080` no máquina anfitriã e rigidez do upstream Nginx** | A porta `8080` estava ocupada localmente por outro serviço (Jenkins) e o `nginx.conf` tinha `http://api:3000` fixo. | Alterada a porta padrão do serviço `web` em `compose.yaml` para `5173:80` (alinhada com `WEB_ORIGIN=http://localhost:5173`) e configurado template `envsubst` com `API_UPSTREAM`. |
 | **5** | **Ordem de arranque entre `web` e `api` no Docker Compose** | `depends_on` simples apenas aguarda o arranque do contentor, não a conclusão das migrations e abertura da porta HTTP. | Adicionados `healthcheck` em `api` e `web` no `compose.yaml` e configurada a condição `service_healthy` em `depends_on`. |
 | **6** | **Violação de *strict mode* no seletor Playwright durante carregamento assíncrono no contentor** | Ao testar o fluxo E2E contra os contentores Docker, `getByRole('status')` coincidia temporariamente com 2 indicadores de carregamento (`A carregar responsáveis…` e `A carregar comentários…`) além do banner de sucesso. | Refinado o seletor em `e2e/task-lifecycle.spec.ts` para `page.getByRole('status').filter({ hasText: 'Tarefa criada com sucesso.' })`. |
+| **7** | **Falha no job `verify` do GitHub Actions (`DATABASE_URL must be a SQLite file URL`)** | No runner limpo do GitHub Actions, `apps/api/.env` não existe por omissão (não é versionado) e `dotenv/config` apenas procurava `.env` no diretório raiz quando `npm test` corria da raiz. | Adicionado o passo `cp apps/api/.env.example apps/api/.env` antes de `npm ci` em `.github/workflows/ci.yml` e configurado `apps/api/src/config/env.ts` para carregar `apps/api/.env` relativamente ao módulo. |
 
 ---
 
