@@ -35,21 +35,32 @@ O âmbito funcional consolidado está em [docs/requirements.md](docs/requirement
 | `docs/requirements.md` | Requisitos funcionais e não funcionais, âmbito e questões em aberto |
 | `docs/user-stories.md` | Histórias de utilizador e critérios de aceitação |
 | `docs/constraints.md` | Restrições, pressupostos e decisões ainda não confirmadas |
-| `docs/architecture.md` | Arquitetura modular e stack aprovada para o plano |
+| `docs/architecture.md` | Arquitetura modular, diagrama Mermaid, containerização e stack implementada |
 | `docs/database.md` | Modelo de dados conceptual e diagrama ER |
-| `openapi.yaml` | Contrato REST do MVP |
+| `openapi.yaml` | Contrato REST OpenAPI 3.1.0 do MVP |
+| `CHANGELOG.md` | Histórico de versões (Semantic Versioning) e notas de lançamento da versão candidata `0.1.0-rc.1` |
 | `docs/ui/wireframe-dashboard.svg` | Wireframe do painel |
 | `docs/architecture-pack.md` | Revisão cruzada do Architecture Pack |
 | `docs/implementation-plan.md` | Incrementos, critérios de aceitação, verificações e estado |
 | `docs/verification.md` | Resultados e evidências da verificação do MVP (Exercício 8) |
 | `docs/test-plan.md` | Plano de testes, estratégia e evidências de execução (unitários, integração e E2E) |
 | `docs/code-and-security-review.md` | Relatório de Code Review, análise de segurança IDOR / Broken Access Control e findings |
+| `docs/delivery-validation.md` | Relatório de validação final, troubleshooting Docker/CI e preparação da entrega (Ficha 05) |
 | `docs/exercicio-1-prompt-engineering.md` | Registo do Exercício 1 |
 | `docs/exercicio-2-análise-de-requisitos-com-AI.md` | Registo do Exercício 2 |
 | `docs/exercicio-3-User-Stories-and-Acceptance-Criteria.md` | Registo do Exercício 3 |
 | `docs/exercicio-6-revisao-critica.md` | Revisão crítica da especificação |
 
-## 5. Estado atual
+## 5. Tecnologias utilizadas e Estado atual
+
+| Camada | Tecnologias |
+|---|---|
+| **Frontend (`@matriz/web`)** | TypeScript ~7.0, React 19, Vite 8 |
+| **Backend (`@matriz/api`)** | TypeScript ~7.0, Node.js ≥ 22.12, Express 5 |
+| **Persistência** | SQLite com Prisma ORM 6 (migrations versionadas) |
+| **Segurança e Autenticação** | Sessões opacas (SHA-256), Cookie `HttpOnly` (`SameSite=Lax`), CSRF Synchronizer Token (`X-CSRF-Token`), hashing de passwords com `scrypt` |
+| **Qualidade e Testes** | Vitest 5 (unitários e integração), Playwright 1.65 (E2E Chromium), Oxlint 1.90 |
+| **Containerização e CI/CD** | Docker (`node:22-alpine`, `nginx:alpine`), Docker Compose (`compose.yaml`), GitHub Actions (`.github/workflows/ci.yml` e `cd.yml`) |
 
 O âmbito da Ficha 03 e o plano de implementação estão documentados. A arquitetura monólito modular e a stack TypeScript, React/Vite, Node.js/Express e SQLite/Prisma foram escolhidas para o plano.
 
@@ -81,7 +92,7 @@ npm run db:seed -w @matriz/api
 npm run dev
 ```
 
-O comando de desenvolvimento inicia a interface Vite em `http://localhost:5173` e a API Express em `http://localhost:3000` (ou na porta definida pela variável `PORT`), ligada apenas a `127.0.0.1`. Também estão disponíveis:
+O comando de desenvolvimento inicia a interface Vite em `http://localhost:5173` e a API Express em `http://localhost:3000` (ou na porta definida pela variável `PORT`), ligada por omissão a `127.0.0.1` (ou ao endereço definido em `HOST`). Também estão disponíveis:
 
 ```sh
 npm run build
@@ -158,6 +169,44 @@ O contrato de sessão e as respostas estão descritos em [openapi.yaml](openapi.
 ### Autorização da API
 
 Todas as rotas de projetos, tarefas, comentários e atribuições exigem uma sessão válida. Apenas membros da equipa do projeto podem consultar os seus recursos ou gerir tarefas, comentários e atribuições. Apenas o proprietário — definido pelo backend a partir da sessão no momento da criação — pode editar ou eliminar o projeto. A API rejeita `ownerId` e `authorId` enviados como campos de pedido e verifica autorização em cada endpoint, não apenas na interface. As duas contas demo pertencem a equipas separadas para testar isolamento entre utilizadores.
+
+### Execução com Docker e Docker Compose
+
+**Pré-requisitos:** Docker Engine e Docker Compose v2+.
+
+A aplicação dispõe de `Dockerfile` multi-stage para a API (`apps/api/Dockerfile`) e para o frontend (`apps/web/Dockerfile`, servido por Nginx com proxy reverso para `/api/v1/`), orquestrados por `compose.yaml` na rede `matriz-net` com o volume persistente `sqlite-data` e healthchecks automáticos:
+
+```sh
+# Opcional: copiar variáveis de configuração do Docker Compose
+test -e .env || cp .env.example .env
+
+# Validar configuração, construir imagens e iniciar os serviços
+docker compose config -q
+docker compose build
+docker compose up -d
+
+# Verificar o estado (healthy) e consultar logs
+docker compose ps
+docker compose logs --tail=50
+```
+
+- A interface web fica disponível em `http://localhost:5173` (ou na porta definida por `WEB_PORT`).
+- A API Express fica exposta em `http://localhost:3000` (ou `API_PORT`), aplicando automaticamente as migrations Prisma no arranque sobre o volume persistente `sqlite-data` (`/data/matriz.db`).
+- Para popular a base de dados do contentor com os dados de demonstração:
+  ```sh
+  docker compose exec -e DEMO_USER_A_PASSWORD="local-demo-password-a-change-me" -e DEMO_USER_B_PASSWORD="local-demo-password-b-change-me" api node apps/api/dist/database/seed.js
+  ```
+- Para parar os contentores preservando os dados no volume `sqlite-data`: `docker compose down`. Para remover também o volume: `docker compose down -v`.
+
+### CI/CD (GitHub Actions) e Deployment
+
+- **Integração Contínua (`.github/workflows/ci.yml`):** Executada em cada `push` e `pull_request` para `main` com permissões mínimas (`contents: read`). Corre sequencialmente:
+  1. `verify`: `npm ci`, `npm run lint`, `npm run typecheck`, `npm run build` e `npm test` (unitários e integração).
+  2. `e2e`: `npm run test:e2e` (Playwright).
+  3. `docker-build`: valida `compose.yaml` e constrói as imagens Docker `matriz-api` e `matriz-web` apenas após a aprovação das verificações anteriores.
+- **Entrega Contínua (`.github/workflows/cd.yml`) e Render (`render.yaml`):**
+  - O ficheiro `render.yaml` (Render Blueprint) e o `Dockerfile` na raiz configuram um *Web Service* unificado (Node.js + Nginx + SQLite) no plano gratuito do Render, servindo o frontend e a API `/api/v1/` sob a mesma origem HTTPS (`RENDER_EXTERNAL_URL`), aplicando automaticamente as migrations e executando a seed demo no arranque quando `DEMO_USER_A_PASSWORD` e `DEMO_USER_B_PASSWORD` estão definidas.
+  - O workflow `.github/workflows/cd.yml` é executado ao publicar tags `v*` (ou manualmente via `workflow_dispatch`), validando o build das imagens Docker (`matriz-api`, `matriz-web` e `matriz-render`) e acionando o Deploy Hook do Render quando o secret `RENDER_DEPLOY_HOOK_URL` está configurado.
 
 ## 7. Princípios de trabalho
 

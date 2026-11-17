@@ -18,7 +18,9 @@ info:
     Registo público e recuperação de palavra-passe não fazem parte do MVP.
 servers:
   - url: http://localhost:3000/api/v1
-    description: Endereço local ilustrativo para desenvolvimento.
+    description: Endereço local direto da API Express (desenvolvimento local).
+  - url: http://localhost:5173/api/v1
+    description: Endereço via proxy reverso Nginx (execução com Docker Compose).
 tags:
   - name: Autenticação
   - name: Equipas

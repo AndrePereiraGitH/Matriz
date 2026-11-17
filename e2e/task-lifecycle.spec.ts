@@ -53,9 +53,9 @@ test.describe('Fluxo E2E: Tarefas da Matriz (Exercício 4)', () => {
     await page.getByRole('button', { name: 'Criar tarefa' }).click()
 
     // 7. Validar feedback de criação bem-sucedida e detalhe imediato
-    await expect(page.getByRole('status')).toHaveText(
-      'Tarefa criada com sucesso.',
-    )
+    await expect(
+      page.getByRole('status').filter({ hasText: 'Tarefa criada com sucesso.' }),
+    ).toBeVisible()
     await expect(
       page.getByRole('heading', { name: taskTitle }),
     ).toBeVisible()

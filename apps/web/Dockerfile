@@ -8,8 +8,8 @@ COPY package.json package-lock.json ./
 COPY apps/web/package.json apps/web/
 COPY apps/api/package.json apps/api/
 
-# Install dependencies
-RUN npm ci
+# Install dependencies without running API prisma postinstall
+RUN npm ci --ignore-scripts
 
 # Copy web source
 COPY apps/web/src apps/web/src
@@ -32,7 +32,10 @@ FROM nginx:alpine
 # Copy built static files
 COPY --from=build /app/apps/web/dist /usr/share/nginx/html
 
-# Copy custom nginx configuration
-COPY apps/web/nginx.conf /etc/nginx/conf.d/default.conf
+# Copy custom nginx configuration template
+COPY apps/web/nginx.conf /etc/nginx/templates/default.conf.template
+
+ENV NGINX_ENVSUBST_FILTER=API_UPSTREAM
+ENV API_UPSTREAM=http://api:3000
 
 EXPOSE 80

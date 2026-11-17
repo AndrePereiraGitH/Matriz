@@ -1,0 +1,18 @@
+# Render Blueprint Specification (https://render.com/docs/blueprint-spec)
+services:
+  - type: web
+    name: matriz
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    plan: free
+    healthCheckPath: /
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        value: file:/data/matriz.db
+      - key: DEMO_USER_A_PASSWORD
+        value: local-demo-password-a-change-me
+      - key: DEMO_USER_B_PASSWORD
+        value: local-demo-password-b-change-me
