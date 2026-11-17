@@ -3,6 +3,7 @@ import type { PrismaClient, Project, Task } from '@prisma/client'
 import { Router } from 'express'
 import type { Response } from 'express'
 import { getAuthenticatedSession, requireCsrfToken, requireSession } from '../auth/session.js'
+import { validateTaskTitle } from './task-title.js'
 
 const TASK_STATUSES = ['TODO', 'IN_PROGRESS', 'DONE'] as const
 const TASK_PRIORITIES = ['LOW', 'MEDIUM', 'HIGH'] as const
@@ -117,25 +118,9 @@ function validateTaskText(
     return false
   }
   if ('title' in value) {
-    if (typeof value.title !== 'string') {
-      validationError(response, 'title', 'O título da tarefa tem de ser texto.')
-      return false
-    }
-    if (!value.title.trim()) {
-      validationError(
-        response,
-        'title',
-        'O título da tarefa não pode conter apenas espaços.',
-      )
-      return false
-    }
-    const titleLength = Array.from(value.title.trim()).length
-    if (titleLength < 3 || titleLength > 150) {
-      validationError(
-        response,
-        'title',
-        'O título da tarefa deve ter entre 3 e 150 caracteres.',
-      )
+    const titleResult = validateTaskTitle(value.title)
+    if (!titleResult.ok) {
+      validationError(response, titleResult.field, titleResult.message)
       return false
     }
   }
