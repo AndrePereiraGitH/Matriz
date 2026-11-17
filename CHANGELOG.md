@@ -6,6 +6,28 @@ O formato baseia-se em [Keep a Changelog](https://keepachangelog.com/pt-PT/1.1.0
 
 ---
 
+## [0.1.0-rc.3] — 2026-11-17
+
+### Corrigido
+
+- **Docker e Render (`apps/web/Dockerfile`, `Dockerfile`):** Removida a instrução `COPY apps/web/public apps/web/public` (diretório vazio não versionado pelo Git que causava erro `"/apps/web/public": not found` em clones limpos no GitHub Actions e no Render).
+
+---
+
+## [0.1.0-rc.2] — 2026-11-17
+
+### Adicionado
+
+- **Deploy no Render (`render.yaml`, `Dockerfile`):** Adicionado Render Blueprint e `Dockerfile` unificado (Node.js + Nginx + SQLite) servindo frontend e API na mesma origem HTTPS (`RENDER_EXTERNAL_URL`) com migrations e seed demo automáticas no arranque.
+
+### Corrigido
+
+- **GitHub Actions CI/CD (`.github/workflows/ci.yml`, `.github/workflows/cd.yml`, `apps/api/src/config/env.ts`):**
+  - Carregamento explícito de `apps/api/.env` relativo ao módulo em `env.ts` e cópia de `apps/api/.env.example` antes de `npm ci` no runner CI.
+  - Verificação condicional de `RENDER_DEPLOY_HOOK_URL` no *shell* do step de deploy em `cd.yml`.
+
+---
+
 ## [0.1.0-rc.1] — 2026-11-17
 
 ### Notas de Lançamento (Release Candidate 1)

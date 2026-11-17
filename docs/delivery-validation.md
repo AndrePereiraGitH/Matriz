@@ -2,7 +2,7 @@
 
 ## 1. Alterações Implementadas
 
-Para preparar a aplicação **Matriz** (versão candidata `v0.1.0-rc.2`) para entrega reproduzível, integração contínua e disponibilização em contentores, foram implementadas as seguintes alterações:
+Para preparar a aplicação **Matriz** (versão candidata `v0.1.0-rc.3`) para entrega reproduzível, integração contínua e disponibilização em contentores, foram implementadas as seguintes alterações:
 
 - **Containerização Docker Multi-Stage:**
   - `apps/api/Dockerfile`: Build em 2 etapas com `node:22-alpine` (compilação TypeScript e geração do Prisma Client na etapa `build`; execução da API Express e aplicação automática de migrations Prisma `db:deploy` sobre `/data/matriz.db` na etapa `runtime`, porta `3000`).
@@ -40,7 +40,7 @@ Para preparar a aplicação **Matriz** (versão candidata `v0.1.0-rc.2`) para en
 | **Execução e Healthchecks** | `docker compose up -d && docker compose ps` | `matriz-api-1` (`Up (healthy)`, `3000/tcp`) e `matriz-web-1` (`Up (healthy)`, `5173->80/tcp`). | Aprovado |
 | **Persistência de dados no volume** | Seed → `docker compose down` → `docker compose up -d` → Login | Utilizadores, projetos e tarefas preservados no volume `matriz_sqlite-data` após destruição e recriação dos contentores. | Aprovado |
 | **Auditoria de segredos** | `git ls-files '*.env*' '*.db*' '*.sqlite*'` | Nenhum ficheiro `.env` real, base de dados `.db` ou credencial sensível consta do controlo de versões. | Aprovado |
-| **Pipelines GitHub Actions** | `.github/workflows/ci.yml` e `cd.yml` | Publicados em `origin/main` (commit `a84eedf`) e tag `v0.1.0-rc.2`. | Configurado |
+| **Pipelines GitHub Actions** | `.github/workflows/ci.yml` e `cd.yml` | Publicados em `origin/main` (commit `d3f9d0d`) e tag `v0.1.0-rc.3`. | Configurado |
 
 ---
 

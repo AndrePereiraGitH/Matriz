@@ -14,7 +14,7 @@ A solução inspira-se em ferramentas de gestão de trabalho como Jira, Azure De
 
 ## 2. Objetivo do projeto
 
-O objetivo é implementar incrementalmente o MVP da Matriz com apoio de AI Assistants/Coding Agents, aplicando as decisões documentadas e verificando cada incremento. O plano está em [docs/implementation-plan.md](docs/implementation-plan.md); o scaffold, a persistência inicial e os dados de demonstração já estão preparados.
+O objetivo foi implementar incrementalmente o MVP da Matriz com apoio de AI Assistants/Coding Agents, aplicando as decisões documentadas e verificando cada incremento até à entrega final containerizada. O plano de incrementos está em [docs/implementation-plan.md](docs/implementation-plan.md) e a validação final de entrega em [docs/delivery-validation.md](docs/delivery-validation.md).
 
 ## 3. Âmbito inicial
 
@@ -38,7 +38,7 @@ O âmbito funcional consolidado está em [docs/requirements.md](docs/requirement
 | `docs/architecture.md` | Arquitetura modular, diagrama Mermaid, containerização e stack implementada |
 | `docs/database.md` | Modelo de dados conceptual e diagrama ER |
 | `openapi.yaml` | Contrato REST OpenAPI 3.1.0 do MVP |
-| `CHANGELOG.md` | Histórico de versões (Semantic Versioning) e notas de lançamento da versão candidata `0.1.0-rc.1` |
+| `CHANGELOG.md` | Histórico de versões (Semantic Versioning) e notas de lançamento das versões candidatas (`0.1.0-rc.1` a `0.1.0-rc.3`) |
 | `docs/ui/wireframe-dashboard.svg` | Wireframe do painel |
 | `docs/architecture-pack.md` | Revisão cruzada do Architecture Pack |
 | `docs/implementation-plan.md` | Incrementos, critérios de aceitação, verificações e estado |
@@ -60,9 +60,9 @@ O âmbito funcional consolidado está em [docs/requirements.md](docs/requirement
 | **Persistência** | SQLite com Prisma ORM 6 (migrations versionadas) |
 | **Segurança e Autenticação** | Sessões opacas (SHA-256), Cookie `HttpOnly` (`SameSite=Lax`), CSRF Synchronizer Token (`X-CSRF-Token`), hashing de passwords com `scrypt` |
 | **Qualidade e Testes** | Vitest 5 (unitários e integração), Playwright 1.65 (E2E Chromium), Oxlint 1.90 |
-| **Containerização e CI/CD** | Docker (`node:22-alpine`, `nginx:alpine`), Docker Compose (`compose.yaml`), GitHub Actions (`.github/workflows/ci.yml` e `cd.yml`) |
+| **Containerização, CI/CD e Cloud** | Docker (`node:22-alpine`, `nginx:alpine`), Docker Compose (`compose.yaml`), GitHub Actions (`.github/workflows/ci.yml` e `cd.yml`), Render Blueprint (`render.yaml` + `Dockerfile`) |
 
-O âmbito da Ficha 03 e o plano de implementação estão documentados. A arquitetura monólito modular e a stack TypeScript, React/Vite, Node.js/Express e SQLite/Prisma foram escolhidas para o plano.
+Os âmbitos das Fichas 03 (implementação do MVP), 04 (testes unitários, integração, E2E e revisão de segurança) e 05 (Docker, Docker Compose, GitHub Actions CI/CD, Render e documentação de release) estão implementados e verificados.
 
 A aplicação executável tem um workspace React/Vite em `apps/web` e um workspace Express/TypeScript em `apps/api`. O backend tem schema Prisma/SQLite, migrations versionadas, ligação validada à base local e seed de demonstração. Login, perfil, logout e operações API protegidas de projetos, tarefas, comentários e atribuições estão implementados. A interface permite gerir projetos e tarefas no detalhe de cada projeto, incluindo a associação de responsáveis elegíveis e a consulta/criação de comentários com autor e data. O conteúdo de comentários é validado entre 1 e 2000 caracteres e não pode conter apenas espaços.
 
